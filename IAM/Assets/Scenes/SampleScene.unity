@@ -1044,7 +1044,7 @@ MonoBehaviour:
   maxAirAcceleration: 10
   jumpHeight: 2
   jumpsInAir: 2
-  wallJumpDirectionChangeBonus: 5
+  wallJumpDirectionChangeBonus: 1
   maxGroundAngle: 25
   maxStairsAngle: 50
   maxSnapToGroundSpeed: 100
