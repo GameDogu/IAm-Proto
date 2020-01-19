@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25c7ccd861cec5e44984129711abca3e, type: 3}
   m_Name: HighlightSettings
   m_EditorClassIdentifier: 
-  Mode: 3
+  Mode: 0
   tagSettings:
   - Settings:
       backgroundColor: {r: 0.26962438, g: 0.41804877, b: 0.6886792, a: 1}
