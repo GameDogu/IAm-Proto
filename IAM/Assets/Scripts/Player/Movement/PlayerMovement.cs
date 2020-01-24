@@ -54,12 +54,12 @@ public class PlayerMovement : MonoBehaviour
     bool OnGround => groundContatctCount > 0;
     bool OnSteep => steepContactCount > 0;
 
-    float minGoundDotProd,minStairDotProd;
+    float minGroundDotProd,minStairDotProd;
     int stepsSinceLastGrounded,stepsSinceLastJump;
 
     private void OnValidate()
     {
-        minGoundDotProd = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
+        minGroundDotProd = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
         minStairDotProd = Mathf.Cos(maxStairsAngle * Mathf.Deg2Rad);
     }
 
@@ -74,7 +74,7 @@ public class PlayerMovement : MonoBehaviour
 
     float GetMinDot(int layer)
     {
-        return (stairsMask & (1<<layer))==0 ? minGoundDotProd : minStairDotProd;
+        return (stairsMask & (1<<layer))==0 ? minGroundDotProd : minStairDotProd;
     }
 
     // Update is called once per frame
@@ -221,7 +221,7 @@ public class PlayerMovement : MonoBehaviour
         if (steepContactCount > 1)
         {
             steepNormal.Normalize();
-            if (steepNormal.y >= minGoundDotProd)
+            if (steepNormal.y >= minGroundDotProd)
             {
                 groundContatctCount = 1;
                 contactNormal = steepNormal;

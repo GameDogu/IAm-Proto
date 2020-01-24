@@ -97,7 +97,7 @@ LightmapSettings:
     m_ExportTrainingData: 0
     m_TrainingDataDestination: TrainingData
   m_LightingDataAsset: {fileID: 0}
-  m_UseShadowmask: 0
+  m_UseShadowmask: 1
 --- !u!196 &4
 NavMeshSettings:
   serializedVersion: 2
@@ -1052,6 +1052,26 @@ PrefabInstance:
         type: 3}
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7459663412160157039, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: wallJumpDirectionChangeBonus
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7459663412649690992, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 7459663412649690992, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 7459663412649690992, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: -5
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 1c25e27d1af1fb147b2a40b744699d4c, type: 3}
