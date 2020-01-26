@@ -190,7 +190,7 @@ CapsuleCollider:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 7459663412160157025}
-  m_Material: {fileID: 0}
+  m_Material: {fileID: 13400000, guid: 053d8c8f64036bf44bf8a5a38dd707ca, type: 2}
   m_IsTrigger: 0
   m_Enabled: 1
   m_Radius: 0.5
@@ -231,6 +231,41 @@ MonoBehaviour:
   jumpHeight: 3
   jumpsInAir: 1
   wallJumpDirectionChangeBonus: 2
+  minWallRunSpeed: 2
+  maxWallRunAngle: 30
+  wallRunMultiplierOverTime:
+    serializedVersion: 2
+    m_Curve:
+    - serializedVersion: 3
+      time: 0
+      value: 1
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 2.5
+      value: 0.95
+      inSlope: -0.04735258
+      outSlope: -0.04735258
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.1083313
+      outWeight: 0.33333334
+    - serializedVersion: 3
+      time: 5
+      value: 0
+      inSlope: 0
+      outSlope: 0
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.086827934
+      outWeight: 0.33333334
+    m_PreInfinity: 2
+    m_PostInfinity: 2
+    m_RotationOrder: 4
   maxGroundAngle: 25
   maxStairsAngle: 50
   maxSnapToGroundSpeed: 100
@@ -241,11 +276,14 @@ MonoBehaviour:
   stairsMask:
     serializedVersion: 2
     m_Bits: 2048
+  defaultMovmentMaterial: {fileID: 13400000, guid: 053d8c8f64036bf44bf8a5a38dd707ca,
+    type: 2}
+  wallGrabMaterial: {fileID: 0}
   jumpKey: 32
   grabKey: 102
   body: {fileID: 7459663412160157032}
-  meshRenderer: {fileID: 7459663412160157027}
   player: {fileID: 7459663412160157033}
+  playerCollider: {fileID: 8458917891410622018}
 --- !u!114 &7459663412160157033
 MonoBehaviour:
   m_ObjectHideFlags: 0

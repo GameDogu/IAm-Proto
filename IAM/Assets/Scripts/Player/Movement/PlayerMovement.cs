@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
@@ -24,6 +25,12 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField, Range(0f, 10f)] float jumpHeight = 2f;
     [SerializeField, Range(0, 10)] int jumpsInAir = 2;
     [SerializeField, Range(0f, 10f)] float wallJumpDirectionChangeBonus = 2f;
+
+    [Header("Wall Running")]
+    [SerializeField, Range(0f, 100f)] int minWallRunSpeed = 2;
+    [SerializeField, Range(0f, 90f)] float maxWallRunAngle = 30f;
+    [SerializeField] AnimationCurve wallRunMultiplierOverTime;
+
     [Header("Walkability of Ground")]
     [SerializeField, Range(0f, 90f)] float maxGroundAngle = 25f;
     [SerializeField, Range(0f, 90f)] float maxStairsAngle = 50f;
@@ -31,36 +38,56 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField, Range(0f, 1f)] float snapToGoundProbeDist = 1f;
     [SerializeField] LayerMask probeMask = -1,stairsMask = -1;
 
+    [Header("PhysicsMaterial")]
+    [SerializeField] PhysicMaterial defaultMovmentMaterial = null;
+    [SerializeField] PhysicMaterial wallGrabMaterial = null;
+
     [Header("Keys")]
     [SerializeField] KeyCode jumpKey = KeyCode.Space;
     [SerializeField] KeyCode grabKey = KeyCode.F;
 
-    [Header("Utility")]
+    [Header("Utility")]//TODO move to player component probably
     [SerializeField]Rigidbody body = null;
-    [SerializeField] MeshRenderer meshRenderer= null;
     [SerializeField] Player player = null;
-    Color c;
+    [SerializeField] Collider playerCollider = null;
 
     Vector3 desiredVelocity,velocity;
     Vector3 contactNormal,steepNormal;
 
+    Vector3 playerDirection => velocity.normalized;
+
     bool desiredJump;
     int jumpPhase;
-
-    bool desiredGrab;
-    bool wasDesiredGrab;
 
     int groundContatctCount,steepContactCount;
     bool OnGround => groundContatctCount > 0;
     bool OnSteep => steepContactCount > 0;
 
-    float minGroundDotProd,minStairDotProd;
+    float minGroundDotProd,minStairDotProd,maxWallRunDotProd;
     int stepsSinceLastGrounded,stepsSinceLastJump;
+
+    float wallRunTimer = 0f;
+    float minTimerValue, maxTimerValue;
 
     private void OnValidate()
     {
         minGroundDotProd = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
         minStairDotProd = Mathf.Cos(maxStairsAngle * Mathf.Deg2Rad);
+        maxWallRunDotProd = Mathf.Cos((90f+maxWallRunAngle) * Mathf.Deg2Rad);
+        playerCollider.material = defaultMovmentMaterial;
+
+        if (wallRunMultiplierOverTime == null)
+        {
+            wallRunMultiplierOverTime = AnimationCurve.Linear(0f, 1f, 1f, 0f);
+            
+        }
+
+        minTimerValue = wallRunMultiplierOverTime.keys.Min(frame => frame.time);
+        maxTimerValue = wallRunMultiplierOverTime.keys.Max(frame => frame.time);
+#if UNITY_EDITOR
+        if(!Application.isPlaying)
+            Debug.Log($"Min, Max: {minTimerValue}, {maxTimerValue}");
+#endif
     }
 
     private void Awake()
@@ -69,7 +96,6 @@ public class PlayerMovement : MonoBehaviour
         if (body == null)
             body = GetComponent<Rigidbody>();
         OnValidate();
-        c = meshRenderer.material.color;
     }
 
     float GetMinDot(int layer)
@@ -80,7 +106,6 @@ public class PlayerMovement : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        wasDesiredGrab = desiredGrab;
 
         Vector2 playerInput;
         playerInput.x = Input.GetAxis("Horizontal");
@@ -91,27 +116,26 @@ public class PlayerMovement : MonoBehaviour
         desiredVelocity = new Vector3(playerInput.x, 0f, playerInput.y)*maxSpeed;
 
         desiredJump |= Input.GetKeyDown(jumpKey);
-        if (Input.GetKeyDown(grabKey))
-        {
-            desiredGrab = !desiredGrab;
-            if (desiredGrab && !OnSteep)
-                desiredGrab = false;
-        }
 
-        if (desiredJump)
-            desiredGrab = false; // relase
-
-        if (OnSteep)
+        if (Input.GetKey(grabKey) && OnSteep)
         {
-            meshRenderer.material.color = Color.black;
-        }
-        else if (desiredGrab)
-        {
-            meshRenderer.material.color = Color.white;
+            playerCollider.material = wallGrabMaterial;
         }
         else
         {
-            meshRenderer.material.color = c;
+            playerCollider.material = defaultMovmentMaterial;
+        }
+
+        TempFunctionality();
+
+    }
+
+    private void TempFunctionality()
+    {
+        if (Input.GetKeyDown(KeyCode.C))
+        {
+            var trail = GetComponent<TrailRenderer>();
+            trail.Clear();
         }
     }
 
@@ -120,39 +144,46 @@ public class PlayerMovement : MonoBehaviour
         UpdateState();
 
         AdjustVelocity();
-
+        var hadDesiredJump = desiredJump;
         if (desiredJump)
         {
             desiredJump = false;
             Jump();
         }
 
-        body.velocity = velocity;
+        if (OnSteep && !OnGround && !Input.GetKey(grabKey))
+        {
+            //check if wall run
+            EvaluateWallRun();
+        }
+        else
+        {
+            wallRunTimer = 0f;
+        }
 
-        if (desiredGrab)
-        {
-            TryGrabWall();
-        }
-        else if (wasDesiredGrab && !desiredGrab)
-        {
-            ReleaseGrab();
-        }
+        body.velocity = velocity;
 
         ClearState();
     }
 
-    private void TryGrabWall()
+    private void EvaluateWallRun()
     {
-        if (OnSteep)
+        if (velocity.XZ().sqrMagnitude < minWallRunSpeed * minWallRunSpeed)
+            return;
+        
+        float dotValue = Vector3.Dot(velocity.XZ().normalized, steepNormal.XZ().normalized);
+        if (dotValue <= 0 && dotValue >= maxWallRunDotProd)
         {
-            body.velocity = Vector3.zero;
-            body.useGravity = false;
+            //wallrunning
+            wallRunTimer += Time.deltaTime;
+            wallRunTimer = Mathf.Clamp(wallRunTimer, minTimerValue, maxTimerValue);
+            //if velocity is pointing similar direction as gravity add some opposite force
+            if (Vector3.Dot(playerDirection, Physics.gravity.normalized) > 0)
+            {
+                velocity += -Physics.gravity * Time.deltaTime * wallRunMultiplierOverTime.Evaluate(wallRunTimer);
+                Debug.Log("Wall Running");
+            }
         }
-    }
-
-    void ReleaseGrab()
-    {
-        body.useGravity = true;
     }
 
     private void ClearState()
