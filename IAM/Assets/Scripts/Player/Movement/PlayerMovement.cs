@@ -29,7 +29,7 @@ public class PlayerMovement : MonoBehaviour
     [Header("Wall Running")]
     [SerializeField, Range(0f, 100f)] int minWallRunSpeed = 2;
     [SerializeField, Range(0f, 90f)] float maxWallRunAngle = 30f;
-    [SerializeField] AnimationCurve wallRunMultiplierOverTime;
+    [SerializeField] WallRunTimer wallRunMultiplierOverTime;
 
     [Header("Walkability of Ground")]
     [SerializeField, Range(0f, 90f)] float maxGroundAngle = 25f;
@@ -78,16 +78,14 @@ public class PlayerMovement : MonoBehaviour
 
         if (wallRunMultiplierOverTime == null)
         {
-            wallRunMultiplierOverTime = AnimationCurve.Linear(0f, 1f, 1f, 0f);
-            
+            wallRunMultiplierOverTime = new WallRunTimer(1f, .95f);
         }
 
-        minTimerValue = wallRunMultiplierOverTime.keys.Min(frame => frame.time);
-        maxTimerValue = wallRunMultiplierOverTime.keys.Max(frame => frame.time);
-#if UNITY_EDITOR
-        if(!Application.isPlaying)
-            Debug.Log($"Min, Max: {minTimerValue}, {maxTimerValue}");
-#endif
+        wallRunMultiplierOverTime.OnValidate();
+
+        minTimerValue = wallRunMultiplierOverTime.MinTimerValue;
+        maxTimerValue = wallRunMultiplierOverTime.MaxTimerValue;
+
     }
 
     private void Awake()
@@ -181,7 +179,7 @@ public class PlayerMovement : MonoBehaviour
             if (Vector3.Dot(playerDirection, Physics.gravity.normalized) > 0)
             {
                 velocity += -Physics.gravity * Time.deltaTime * wallRunMultiplierOverTime.Evaluate(wallRunTimer);
-                Debug.Log("Wall Running");
+                
             }
         }
     }
@@ -361,4 +359,56 @@ public class PlayerMovement : MonoBehaviour
     {
         EvaluateCollision(collision);
     }
+}
+
+
+[Serializable]  
+public class WallRunTimer
+{
+    [SerializeField,Range(0f,10f)] float duration;
+    [SerializeField,Range(0f,1f)] float halfTimeValue;
+    [SerializeField] AnimationCurve curve = new AnimationCurve(
+                                                    new Keyframe(0f, 1f), 
+                                                    new Keyframe(0.5f, 0.5f), 
+                                                    new Keyframe(1f, 0f));
+
+    public float MinTimerValue => 0f;
+    public float MaxTimerValue => duration;
+
+    public WallRunTimer(float duration, float halfTimeValue)
+    {
+        this.duration = duration;
+        this.halfTimeValue = halfTimeValue;
+        CreateCurve();
+    }
+
+    public void OnValidate()
+    {
+        CreateCurve();
+    }
+
+    private void CreateCurve()
+    {
+        this.curve = new AnimationCurve();
+
+        curve.AddKey(new Keyframe(0f, 1f));
+        curve.AddKey(new Keyframe(duration * .5f, halfTimeValue));
+        curve.AddKey(new Keyframe(duration, 0f));
+
+        ClampKeyTangents(0);
+        ClampKeyTangents(1);
+        ClampKeyTangents(2);
+    }
+
+    void ClampKeyTangents(int idx)
+    {
+        UnityEditor.AnimationUtility.SetKeyLeftTangentMode(curve, idx, UnityEditor.AnimationUtility.TangentMode.ClampedAuto);
+        UnityEditor.AnimationUtility.SetKeyRightTangentMode(curve, idx, UnityEditor.AnimationUtility.TangentMode.ClampedAuto);
+    }
+
+    public float Evaluate(float t)
+    {
+        return curve.Evaluate(t);
+    }
+
 }
