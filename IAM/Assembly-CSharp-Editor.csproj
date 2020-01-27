@@ -63,7 +63,6 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Editor\Docker\Docker.cs" />
-    <Compile Include="Assets\Scripts\Editor\EnumEditing\EnumBuilder.cs" />
     <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\HierachyHighlights.cs" />
     <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\HierarchyHightlightsSettings.cs" />
     <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\HierarchyHightlightsSettingsEditor.cs" />

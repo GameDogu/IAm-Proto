@@ -68,7 +68,9 @@
     <Compile Include="Assets\Scripts\Player\Movement\LookX.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\LookY.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\PlayerMovement.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\WallRunTimer.cs" />
     <Compile Include="Assets\Scripts\Player\Player.cs" />
+    <Compile Include="Assets\Scripts\Player\PlayerCollisionHandler.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCursorControls.cs" />
     <Compile Include="Assets\Scripts\Utility\TransformExtensions.cs" />
     <Compile Include="Assets\Scripts\Utility\TransformInformation.cs" />

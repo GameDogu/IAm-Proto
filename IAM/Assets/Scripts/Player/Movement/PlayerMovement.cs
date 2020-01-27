@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections;
+﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -7,16 +6,16 @@ using System.Linq;
 [RequireComponent(typeof(Rigidbody))]
 public class PlayerMovement : MonoBehaviour
 {
-    public enum MovementActions
-    {
-        Walk,
-        Run,
-        Jump,
-        AirJump,
-        WallJump,
-        WallRun,
-        WallGrab
-    }
+    //public enum MovementActions
+    //{
+    //    Walk,
+    //    Run,
+    //    Jump,
+    //    AirJump,
+    //    WallJump,
+    //    WallRun,
+    //    WallGrab
+    //}
 
     [Header("Speed and acceleration")]
     [SerializeField, Range(0f, 100f)] float maxSpeed = 10f;
@@ -30,14 +29,7 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField, Range(0f, 100f)] int minWallRunSpeed = 2;
     [SerializeField, Range(0f, 90f)] float maxWallRunAngle = 30f;
     [SerializeField] WallRunTimer wallRunMultiplierOverTime;
-
-    [Header("Walkability of Ground")]
-    [SerializeField, Range(0f, 90f)] float maxGroundAngle = 25f;
-    [SerializeField, Range(0f, 90f)] float maxStairsAngle = 50f;
-    [SerializeField, Range(0f, 100f)] float maxSnapToGroundSpeed = 100f;
-    [SerializeField, Range(0f, 1f)] float snapToGoundProbeDist = 1f;
-    [SerializeField] LayerMask probeMask = -1,stairsMask = -1;
-
+ 
     [Header("PhysicsMaterial")]
     [SerializeField] PhysicMaterial defaultMovmentMaterial = null;
     [SerializeField] PhysicMaterial wallGrabMaterial = null;
@@ -46,33 +38,36 @@ public class PlayerMovement : MonoBehaviour
     [SerializeField] KeyCode jumpKey = KeyCode.Space;
     [SerializeField] KeyCode grabKey = KeyCode.F;
 
-    [Header("Utility")]//TODO move to player component probably
-    [SerializeField]Rigidbody body = null;
+    [Header("Utility")]
     [SerializeField] Player player = null;
-    [SerializeField] Collider playerCollider = null;
+    [SerializeField] GameObject indicator = null;
+    Rigidbody body => player.Body;
+    Collider playerCollider => player.Collider;
 
-    Vector3 desiredVelocity,velocity;
-    Vector3 contactNormal,steepNormal;
-
+    Vector3 desiredVelocity, velocity;
+    Vector3 Velocity => velocity;
+    
     Vector3 playerDirection => velocity.normalized;
 
     bool desiredJump;
     int jumpPhase;
 
-    int groundContatctCount,steepContactCount;
-    bool OnGround => groundContatctCount > 0;
-    bool OnSteep => steepContactCount > 0;
+    Vector3 contactNormal => player.PlayerCollisionHandler.ContactNormal;
+    Vector3  steepNormal => player.PlayerCollisionHandler.SteepNormal;
 
-    float minGroundDotProd,minStairDotProd,maxWallRunDotProd;
-    int stepsSinceLastGrounded,stepsSinceLastJump;
+    public float Speed => velocity.magnitude;
+
+    bool OnGround => player.PlayerCollisionHandler.OnGround;
+    bool OnSteep => player.PlayerCollisionHandler.OnSteep;
+
+    float maxWallRunDotProd;  
 
     float wallRunTimer = 0f;
     float minTimerValue, maxTimerValue;
 
     private void OnValidate()
     {
-        minGroundDotProd = Mathf.Cos(maxGroundAngle * Mathf.Deg2Rad);
-        minStairDotProd = Mathf.Cos(maxStairsAngle * Mathf.Deg2Rad);
+        
         maxWallRunDotProd = Mathf.Cos((90f+maxWallRunAngle) * Mathf.Deg2Rad);
         playerCollider.material = defaultMovmentMaterial;
 
@@ -85,20 +80,11 @@ public class PlayerMovement : MonoBehaviour
 
         minTimerValue = wallRunMultiplierOverTime.MinTimerValue;
         maxTimerValue = wallRunMultiplierOverTime.MaxTimerValue;
-
     }
 
     private void Awake()
-
     {
-        if (body == null)
-            body = GetComponent<Rigidbody>();
-        OnValidate();
-    }
-
-    float GetMinDot(int layer)
-    {
-        return (stairsMask & (1<<layer))==0 ? minGroundDotProd : minStairDotProd;
+        OnValidate(); 
     }
 
     // Update is called once per frame
@@ -137,12 +123,17 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
+    public void ResetJumpPhase()
+    {
+        jumpPhase = 0;
+    }
+
     private void FixedUpdate()
     {
-        UpdateState();
+        velocity = body.velocity;
+        player.PlayerCollisionHandler.UpdateState();
 
         AdjustVelocity();
-        var hadDesiredJump = desiredJump;
         if (desiredJump)
         {
             desiredJump = false;
@@ -157,11 +148,12 @@ public class PlayerMovement : MonoBehaviour
         else
         {
             wallRunTimer = 0f;
+            indicator.SetActive(false);
         }
 
         body.velocity = velocity;
 
-        ClearState();
+        player.PlayerCollisionHandler.ClearState();
     }
 
     private void EvaluateWallRun()
@@ -173,6 +165,7 @@ public class PlayerMovement : MonoBehaviour
         if (dotValue <= 0 && dotValue >= maxWallRunDotProd)
         {
             //wallrunning
+            indicator.SetActive(true);
             wallRunTimer += Time.deltaTime;
             wallRunTimer = Mathf.Clamp(wallRunTimer, minTimerValue, maxTimerValue);
             //if velocity is pointing similar direction as gravity add some opposite force
@@ -182,82 +175,6 @@ public class PlayerMovement : MonoBehaviour
                 
             }
         }
-    }
-
-    private void ClearState()
-    {
-        groundContatctCount = steepContactCount = 0;
-        contactNormal = steepNormal = Vector3.zero;
-    }
-
-    void UpdateState()
-    {
-        stepsSinceLastGrounded += 1;
-        stepsSinceLastJump += 1;
-        velocity = body.velocity;
-        body.useGravity = true;
-        if (OnGround || SnapToGround() || CheckSteepContacts())
-        {
-            stepsSinceLastGrounded = 0;
-
-            if(stepsSinceLastJump > 1)
-                jumpPhase = 0;
-
-            if (groundContatctCount > 1)
-            {
-                contactNormal.Normalize();
-            }
-        }
-        else
-        {
-            contactNormal = Vector3.up;
-        }
-
-    }
-
-    bool SnapToGround()
-    {
-        if (stepsSinceLastGrounded > 1 || stepsSinceLastJump <= 2)
-        {
-            return false;
-        }
-        float speed = velocity.magnitude;
-        if (speed > maxSnapToGroundSpeed)
-        {
-            return false;
-        }
-        if (!Physics.Raycast(body.position, Vector3.down,out RaycastHit hit,snapToGoundProbeDist,probeMask))
-        {
-            return false;
-        }
-        if (hit.normal.y < GetMinDot(hit.transform.gameObject.layer))
-        {
-            return false;
-        }
-        groundContatctCount = 1;
-        contactNormal = hit.normal;
-
-        float dot = Vector3.Dot(velocity, hit.normal);
-        if(dot > 0f)
-        {
-            velocity = (velocity - hit.normal * dot).normalized * speed;
-        }
-        return true;
-    }
-
-    bool CheckSteepContacts()
-    {
-        if (steepContactCount > 1)
-        {
-            steepNormal.Normalize();
-            if (steepNormal.y >= minGroundDotProd)
-            {
-                groundContatctCount = 1;
-                contactNormal = steepNormal;
-                return true;
-            }
-        }
-        return false;
     }
 
     private void Jump()
@@ -282,7 +199,7 @@ public class PlayerMovement : MonoBehaviour
         else
             return;
 
-        stepsSinceLastJump = 0;
+        player.PlayerCollisionHandler.ResetStepsSinceLastJump(); 
         jumpPhase += 1;
         float jumpSpeed = Mathf.Sqrt(-2f * Physics.gravity.y * DetermineJumpHeight(jumpPhase));
         //allow to gain height from wall jump eg
@@ -331,84 +248,13 @@ public class PlayerMovement : MonoBehaviour
         velocity += xAxis * (newX - currentX) + zAxis * (newZ - currentZ);
     }
 
-    private void OnCollisionEnter(Collision collision)
+    public void AlignVelocityWithContactNormal(Vector3 normal)
     {
-        EvaluateCollision(collision);
-    }
-
-    void EvaluateCollision(Collision col)
-    {
-        float minDot = GetMinDot(col.gameObject.layer);
-        for (int i = 0; i < col.contactCount; i++)
+        float dot = Vector3.Dot(velocity, normal);
+        if (dot > 0f)
         {
-            Vector3 normal = col.GetContact(i).normal;
-            if (normal.y >= minDot)
-            {
-                groundContatctCount += 1;
-                contactNormal += normal;
-            }
-            else if(normal.y > -0.01f)
-            {
-                steepContactCount += 1;
-                steepNormal += normal;
-            }
+            velocity = (velocity - normal * dot).normalized * Speed;
         }
-    }
-
-    private void OnCollisionStay(Collision collision)
-    {
-        EvaluateCollision(collision);
-    }
-}
-
-
-[Serializable]  
-public class WallRunTimer
-{
-    [SerializeField,Range(0f,10f)] float duration;
-    [SerializeField,Range(0f,1f)] float halfTimeValue;
-    [SerializeField] AnimationCurve curve = new AnimationCurve(
-                                                    new Keyframe(0f, 1f), 
-                                                    new Keyframe(0.5f, 0.5f), 
-                                                    new Keyframe(1f, 0f));
-
-    public float MinTimerValue => 0f;
-    public float MaxTimerValue => duration;
-
-    public WallRunTimer(float duration, float halfTimeValue)
-    {
-        this.duration = duration;
-        this.halfTimeValue = halfTimeValue;
-        CreateCurve();
-    }
-
-    public void OnValidate()
-    {
-        CreateCurve();
-    }
-
-    private void CreateCurve()
-    {
-        this.curve = new AnimationCurve();
-
-        curve.AddKey(new Keyframe(0f, 1f));
-        curve.AddKey(new Keyframe(duration * .5f, halfTimeValue));
-        curve.AddKey(new Keyframe(duration, 0f));
-
-        ClampKeyTangents(0);
-        ClampKeyTangents(1);
-        ClampKeyTangents(2);
-    }
-
-    void ClampKeyTangents(int idx)
-    {
-        UnityEditor.AnimationUtility.SetKeyLeftTangentMode(curve, idx, UnityEditor.AnimationUtility.TangentMode.ClampedAuto);
-        UnityEditor.AnimationUtility.SetKeyRightTangentMode(curve, idx, UnityEditor.AnimationUtility.TangentMode.ClampedAuto);
-    }
-
-    public float Evaluate(float t)
-    {
-        return curve.Evaluate(t);
     }
 
 }
