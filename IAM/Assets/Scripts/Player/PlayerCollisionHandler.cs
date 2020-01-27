@@ -5,9 +5,9 @@ using UnityEngine;
 
 public class PlayerCollisionHandler : MonoBehaviour
 {
-    [SerializeField] Player player;
+    [SerializeField] Player player = null;
     Rigidbody body => player.Body;
-    PlayerMovement movementHandler => player.MovementHandler;
+    PlayerMovementHandler movementHandler => player.MovementHandler;
 
     [Header("Walkability of Ground")]
     [SerializeField, Range(0f, 90f)] float maxGroundAngle = 25f;
@@ -52,7 +52,7 @@ public class PlayerCollisionHandler : MonoBehaviour
             stepsSinceLastGrounded = 0;
 
             if (stepsSinceLastJump > 1)
-                movementHandler.ResetJumpPhase();
+                player.MovementHandler.ResetJumpPhase();
 
             if (groundContatctCount > 1)
             {

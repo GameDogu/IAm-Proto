@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+
+[RequireComponent(typeof(Rigidbody))]
 public class Player : Agent
 {
     [SerializeField] Camera playerCamera = null;
@@ -11,10 +13,11 @@ public class Player : Agent
     public Collider Collider => playerCollider;
     [SerializeField] Rigidbody body = null;
     public Rigidbody Body => body;
-    [SerializeField] PlayerCollisionHandler collisionHandler;
-    public PlayerCollisionHandler PlayerCollisionHandler => collisionHandler;
-    [SerializeField] PlayerMovement movementHandler;
-    public PlayerMovement MovementHandler => movementHandler;
+
+    [SerializeField] PlayerCollisionHandler collisionHandler = null;
+    public PlayerCollisionHandler CollisionHandler => collisionHandler;
+    [SerializeField] PlayerMovementHandler movementHandler = null;
+    public PlayerMovementHandler MovementHandler => movementHandler;
 
     TransformLocalInfo defaultCameraTransformInfo;
     float playerCameraDistance = 0f;

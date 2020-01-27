@@ -92,11 +92,15 @@ GameObject:
   - component: {fileID: 7459663412160157038}
   - component: {fileID: 8458917891410622018}
   - component: {fileID: 7459663412160157032}
-  - component: {fileID: 7459663412160157039}
   - component: {fileID: 7459663412160157033}
+  - component: {fileID: 7459663412160157039}
   - component: {fileID: 7459663412160157034}
   - component: {fileID: 7459663412160157035}
   - component: {fileID: 9098136312673472269}
+  - component: {fileID: 7590318864843507575}
+  - component: {fileID: 6510279069024067776}
+  - component: {fileID: 7228327235189188759}
+  - component: {fileID: 2688350772113844402}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -293,69 +297,6 @@ Rigidbody:
   m_Interpolate: 1
   m_Constraints: 112
   m_CollisionDetection: 1
---- !u!114 &7459663412160157039
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7459663412160157025}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c328ed112f215024ca93a97ab1cb85da, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxSpeed: 15
-  maxAccelleration: 20
-  maxAirAcceleration: 20
-  jumpHeight: 2
-  jumpsInAir: 1
-  wallJumpDirectionChangeBonus: 2
-  minWallRunSpeed: 2
-  maxWallRunAngle: 30
-  wallRunMultiplierOverTime:
-    duration: 3
-    halfTimeValue: 0.98
-    curve:
-      serializedVersion: 2
-      m_Curve:
-      - serializedVersion: 3
-        time: 0
-        value: 1
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 137
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 1.5
-        value: 0.98
-        inSlope: -0.026666641
-        outSlope: -0.026666641
-        tangentMode: 137
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      - serializedVersion: 3
-        time: 3
-        value: 0
-        inSlope: 0
-        outSlope: 0
-        tangentMode: 137
-        weightedMode: 0
-        inWeight: 0.33333334
-        outWeight: 0.33333334
-      m_PreInfinity: 2
-      m_PostInfinity: 2
-      m_RotationOrder: 4
-  defaultMovmentMaterial: {fileID: 13400000, guid: 053d8c8f64036bf44bf8a5a38dd707ca,
-    type: 2}
-  wallGrabMaterial: {fileID: 0}
-  jumpKey: 32
-  grabKey: 102
-  player: {fileID: 7459663412160157033}
-  indicator: {fileID: 5700451242333661924}
 --- !u!114 &7459663412160157033
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -375,6 +316,24 @@ MonoBehaviour:
   body: {fileID: 7459663412160157032}
   collisionHandler: {fileID: 9098136312673472269}
   movementHandler: {fileID: 7459663412160157039}
+--- !u!114 &7459663412160157039
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459663412160157025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c328ed112f215024ca93a97ab1cb85da, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  player: {fileID: 7459663412160157033}
+  possibleMovement:
+  - {fileID: 7590318864843507575}
+  - {fileID: 6510279069024067776}
+  - {fileID: 2688350772113844402}
+  - {fileID: 7228327235189188759}
 --- !u!114 &7459663412160157034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -426,6 +385,104 @@ MonoBehaviour:
   stairsMask:
     serializedVersion: 2
     m_Bits: 2048
+--- !u!114 &7590318864843507575
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459663412160157025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e51bb777fcab4c40a704c37c66b30a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxSpeed: 15
+  maxAccelleration: 20
+  maxAirAcceleration: 20
+--- !u!114 &6510279069024067776
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459663412160157025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cce121c0c7ff6f84a8249b3b0b2104a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  jumpHeight: 2
+  jumpsInAir: 1
+  wallJumpDirectionChangeBonus: 2
+  jumpKey: 32
+--- !u!114 &7228327235189188759
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459663412160157025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a37dc404683b9804193aebc1c811d6fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minWallRunSpeed: 2
+  maxWallRunAngle: 30
+  wallRunMultiplierOverTime:
+    duration: 3
+    halfTimeValue: 0.995
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1.5
+        value: 0.995
+        inSlope: -0.0066666603
+        outSlope: -0.0066666603
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 3
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  indicator: {fileID: 5700451242333661924}
+--- !u!114 &2688350772113844402
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459663412160157025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7a868193adc9d2e46bb372d10467259d, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  defaultMovmentMaterial: {fileID: 13400000, guid: 053d8c8f64036bf44bf8a5a38dd707ca,
+    type: 2}
+  wallGrabMaterial: {fileID: 0}
+  grabKey: 102
 --- !u!1 &7459663412649690997
 GameObject:
   m_ObjectHideFlags: 0
