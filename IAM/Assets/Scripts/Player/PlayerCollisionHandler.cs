@@ -5,6 +5,12 @@ using UnityEngine;
 
 public class PlayerCollisionHandler : MonoBehaviour
 {
+    public event Action OnUpdateStateStart;
+    public event Action OnUpdateStateGrounded;
+    public event Action OnUpdateStateInAir;
+    public event Action OnUpdateStateEnd;
+    public event Action OnClearState;
+
     [SerializeField] Player player = null;
     Rigidbody body => player.Body;
     PlayerMovementHandler movementHandler => player.MovementHandler;
@@ -26,7 +32,7 @@ public class PlayerCollisionHandler : MonoBehaviour
     public bool OnGround => groundContatctCount > 0;
     public bool OnSteep => steepContactCount > 0;
 
-    int stepsSinceLastGrounded, stepsSinceLastJump;
+    int stepsSinceLastGrounded;
 
     float minGroundDotProd, minStairDotProd;
 
@@ -40,19 +46,18 @@ public class PlayerCollisionHandler : MonoBehaviour
     {
         groundContatctCount = steepContactCount = 0;
         contactNormal = steepNormal = Vector3.zero;
+        OnClearState?.Invoke();
     }
 
     public void UpdateState()
     {
+        OnUpdateStateStart?.Invoke();
         stepsSinceLastGrounded += 1;
-        stepsSinceLastJump += 1;
         body.useGravity = true;
         if (OnGround || SnapToGround() || CheckSteepContacts())
         {
+            OnUpdateStateGrounded?.Invoke();
             stepsSinceLastGrounded = 0;
-
-            if (stepsSinceLastJump > 1)
-                player.MovementHandler.ResetJumpPhase();
 
             if (groundContatctCount > 1)
             {
@@ -62,12 +67,14 @@ public class PlayerCollisionHandler : MonoBehaviour
         else
         {
             contactNormal = Vector3.up;
+            OnUpdateStateInAir?.Invoke();
         }
+        OnUpdateStateEnd?.Invoke();
     }
 
     bool SnapToGround()
     {
-        if (stepsSinceLastGrounded > 1 || stepsSinceLastJump <= 2)
+        if (stepsSinceLastGrounded > 1 || PlayerInputPrevented())
         {
             return false;
         }
@@ -87,6 +94,11 @@ public class PlayerCollisionHandler : MonoBehaviour
         groundContatctCount = 1;
         contactNormal = hit.normal;
         return true;
+    }
+
+    private bool PlayerInputPrevented()
+    {
+        return player.MovementHandler.CheckPlayerActionPreventsGroundSnapping();
     }
 
     public bool CheckSteepContacts()
@@ -136,10 +148,5 @@ public class PlayerCollisionHandler : MonoBehaviour
     private void OnCollisionStay(Collision collision)
     {
         EvaluateCollision(collision);
-    }
-
-    public void ResetStepsSinceLastJump()
-    {
-        stepsSinceLastJump = 0;
     }
 }

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[RequireComponent(typeof(PlayerMovementHandler))]
+[Serializable,RequireComponent(typeof(PlayerMovementHandler))]
 public abstract class PlayerMovement : MonoBehaviour
 {
     PlayerMovementHandler handler = null;
@@ -48,7 +48,7 @@ public abstract class PlayerMovement : MonoBehaviour
         handler.OnFixedUpdate -= updateAction;
     }
 
-    protected void AddVelocity(Vector3 vel)
+    protected void AddVelocityToPlayer(Vector3 vel)
     {
         handler.AddVelocity(vel);
     }

@@ -20,18 +20,38 @@ public class PlayerJump : PlayerMovement
 
     Vector3 velocity => player.MovementHandler.Velocity;
 
+    /// <summary>
+    /// Because of the collision data delay we're still considered grounded the step after the jump was initiated
+    /// </summary>
+    public bool RecentlyJumped => stepsSinceLastJump <= 2;
+
     bool desiredJump;
-    int jumpPhase;
+    int jumpPhase, stepsSinceLastJump;
 
     protected override void Initialize()
     {
         RegisterUpdateCall(UpdateProcedure);
         RegisterFixedUpdateCall(FixedUpdateProcedure);
+
+        //Collision Handler events
+        player.CollisionHandler.OnUpdateStateStart += OnCollisionHandlreStateUpdateStart;
+        player.CollisionHandler.OnUpdateStateGrounded += OnCollisionHandlerUpdateGrounded;
     }
 
     private void UpdateProcedure()
     {
         desiredJump |= Input.GetKeyDown(jumpKey);
+    }
+
+    private void OnCollisionHandlreStateUpdateStart()
+    {
+        stepsSinceLastJump += 1;
+    }
+
+    private void OnCollisionHandlerUpdateGrounded() 
+    {
+        if (stepsSinceLastJump > 1)
+                ResetJumpPhase();
     }
 
     private void FixedUpdateProcedure()
@@ -70,7 +90,7 @@ public class PlayerJump : PlayerMovement
         else
             return;
 
-        player.CollisionHandler.ResetStepsSinceLastJump();
+        stepsSinceLastJump = 0;
         jumpPhase += 1;
         float jumpSpeed = Mathf.Sqrt(-2f * Physics.gravity.y * DetermineJumpHeight(jumpPhase));
         //allow to gain height from wall jump eg
@@ -96,6 +116,4 @@ public class PlayerJump : PlayerMovement
     {
         return jumpHeight * (float)jumpPhase;
     }
-
-
 }

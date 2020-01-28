@@ -16,12 +16,11 @@ public class PlayerMovementHandler : MonoBehaviour
 
     Rigidbody body => player.Body;
 
-    Vector3 velocity;
-    public Vector3 Velocity => velocity;
+    public Vector3 Velocity { get; protected set; }
     
-    public Vector3 PlayerDirection => velocity.normalized;
+    public Vector3 PlayerDirection => Velocity.normalized;
 
-    public float Speed => velocity.magnitude;
+    public float Speed => Velocity.magnitude;
 
     PlayerWallGrab grabHandler = null;
     public bool IsGrabbing => grabHandler != null ? grabHandler.IsGrabbing : false;
@@ -58,7 +57,7 @@ public class PlayerMovementHandler : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        velocity = body.velocity;
+        Velocity = body.velocity;
 
         OnUpdate?.Invoke();
 
@@ -76,27 +75,27 @@ public class PlayerMovementHandler : MonoBehaviour
 
     public void AddVelocity(Vector3 vel)
     {
-        velocity += vel;
+        Velocity += vel;
     }
 
     private void FixedUpdate()
     {
-        velocity = body.velocity;
+        Velocity = body.velocity;
         player.CollisionHandler.UpdateState();
 
         OnFixedUpdate?.Invoke();
 
-        body.velocity = velocity;
+        body.velocity = Velocity;
 
         player.CollisionHandler.ClearState();
     }
 
     public void AlignVelocityWithContactNormal(Vector3 normal)
     {
-        float dot = Vector3.Dot(velocity, normal);
+        float dot = Vector3.Dot(Velocity, normal);
         if (dot > 0f)
         {
-            velocity = (velocity - normal * dot).normalized * Speed;
+            Velocity = (Velocity - normal * dot).normalized * Speed;
         }
     }
 
@@ -106,4 +105,10 @@ public class PlayerMovementHandler : MonoBehaviour
             jumpHandler.ResetJumpPhase();
     }
 
+    public bool CheckPlayerActionPreventsGroundSnapping()
+    {
+        if(jumpHandler)
+            return jumpHandler.RecentlyJumped;
+        return false;
+    }
 }
