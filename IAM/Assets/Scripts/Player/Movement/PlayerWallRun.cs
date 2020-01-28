@@ -48,6 +48,11 @@ public class PlayerWallRun : PlayerMovement
         RegisterFixedUpdateCall(FixedUpdateProcedure);
     }
 
+    public override void Stop()
+    {
+        UnregisterFixedUpdateCall(FixedUpdateProcedure);
+    }
+
     private void FixedUpdateProcedure()
     {
         if (OnSteep && !OnGround && !player.MovementHandler.IsGrabbing)

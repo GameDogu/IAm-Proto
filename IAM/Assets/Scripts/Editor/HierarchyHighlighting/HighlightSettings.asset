@@ -15,8 +15,8 @@ MonoBehaviour:
   Mode: 0
   tagSettings:
   - Settings:
-      backgroundColor: {r: 0.26962438, g: 0.41804877, b: 0.6886792, a: 1}
-      textColor: {r: 0, g: 0, b: 0, a: 1}
+      backgroundColor: {r: 0.048282295, g: 0.13458398, b: 0.2924528, a: 1}
+      textColor: {r: 1, g: 1, b: 1, a: 1}
       Style: 1
     Name: Player
   - Settings:

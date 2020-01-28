@@ -34,8 +34,39 @@ public class PlayerJump : PlayerMovement
         RegisterFixedUpdateCall(FixedUpdateProcedure);
 
         //Collision Handler events
-        player.CollisionHandler.OnUpdateStateStart += OnCollisionHandlreStateUpdateStart;
-        player.CollisionHandler.OnUpdateStateGrounded += OnCollisionHandlerUpdateGrounded;
+        RegisterCollisonHandlerStartStateUpdate();
+        RegisterCollisionHandlerGroundedStateUpdate();
+
+    }
+
+    public override void Stop()
+    {
+        UnregisterUpdateCall(UpdateProcedure);
+        UnregisterFixedUpdateCall(FixedUpdateProcedure);
+        UnregisterCollisonHandlerUpdateStart();
+        UnregisterCollisionHandlerGroundedStateUpdate();
+    }
+
+    void RegisterCollisonHandlerStartStateUpdate()
+    {
+        UnregisterCollisonHandlerUpdateStart();
+        player.CollisionHandler.OnStateUpdateStart += OnCollisionHandlreStateUpdateStart;
+    }
+
+    void UnregisterCollisonHandlerUpdateStart()
+    {
+        player.CollisionHandler.OnStateUpdateStart -= OnCollisionHandlreStateUpdateStart;
+    }
+
+    void RegisterCollisionHandlerGroundedStateUpdate()
+    {
+        UnregisterCollisionHandlerGroundedStateUpdate();
+        player.CollisionHandler.OnGroundedStateUpdate += OnCollisionHandlerUpdateGrounded;
+    }
+
+    void UnregisterCollisionHandlerGroundedStateUpdate()
+    {
+        player.CollisionHandler.OnGroundedStateUpdate -= OnCollisionHandlerUpdateGrounded;
     }
 
     private void UpdateProcedure()

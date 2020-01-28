@@ -22,6 +22,12 @@ public class PlayerPlanarMovement : PlayerMovement
         RegisterFixedUpdateCall(FixedUpdateProcedure);
     }
 
+    public override void Stop()
+    {
+        UnregisterUpdateCall(UpdateProcedure);
+        UnregisterFixedUpdateCall(FixedUpdateProcedure);
+    }
+
     private void UpdateProcedure()
     {
         Vector2 playerInput;

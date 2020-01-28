@@ -27,6 +27,11 @@ public class PlayerWallGrab : PlayerMovement
         RegisterUpdateCall(UpdateProcedure);
     }
 
+    public override void Stop()
+    {
+        UnregisterUpdateCall(UpdateProcedure);
+    }
+
     private void UpdateProcedure()
     {
         if ( IsGrabbing && OnSteep)

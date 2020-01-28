@@ -24,6 +24,8 @@ public abstract class PlayerMovement : MonoBehaviour
         Initialize();
     }
 
+    public abstract void Stop();
+
     protected abstract void Initialize();
 
     protected void RegisterUpdateCall(Action updateAction)

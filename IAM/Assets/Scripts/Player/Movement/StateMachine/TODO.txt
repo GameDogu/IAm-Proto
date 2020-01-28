@@ -1,0 +1,5 @@
+MovementState
+Add Handler Editor -> where overall player mvoement options are added
+Add State machine to movement handler
+	where states can be created and reference the movment options in general that the handler has
+	Add editor for state transition creation

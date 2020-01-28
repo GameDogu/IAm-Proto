@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class PlayerCollisionHandler : MonoBehaviour
 {
-    public event Action OnUpdateStateStart;
-    public event Action OnUpdateStateGrounded;
-    public event Action OnUpdateStateInAir;
-    public event Action OnUpdateStateEnd;
+    public event Action OnStateUpdateStart;
+    public event Action OnGroundedStateUpdate;
+    public event Action OnInAirStateUpdate;
+    public event Action OnStateUpdateEnd;
     public event Action OnClearState;
 
     [SerializeField] Player player = null;
@@ -51,12 +51,12 @@ public class PlayerCollisionHandler : MonoBehaviour
 
     public void UpdateState()
     {
-        OnUpdateStateStart?.Invoke();
+        OnStateUpdateStart?.Invoke();
         stepsSinceLastGrounded += 1;
         body.useGravity = true;
         if (OnGround || SnapToGround() || CheckSteepContacts())
         {
-            OnUpdateStateGrounded?.Invoke();
+            OnGroundedStateUpdate?.Invoke();
             stepsSinceLastGrounded = 0;
 
             if (groundContatctCount > 1)
@@ -67,9 +67,9 @@ public class PlayerCollisionHandler : MonoBehaviour
         else
         {
             contactNormal = Vector3.up;
-            OnUpdateStateInAir?.Invoke();
+            OnInAirStateUpdate?.Invoke();
         }
-        OnUpdateStateEnd?.Invoke();
+        OnStateUpdateEnd?.Invoke();
     }
 
     bool SnapToGround()
