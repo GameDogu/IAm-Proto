@@ -86,7 +86,7 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
             //if velocity is pointing similar direction as gravity add some opposite force
             if (Vector3.Dot(playerDirection, Physics.gravity.normalized) > 0)
             {
-                player.MovementHandler.AddVelocity( -Physics.gravity * Time.deltaTime * wallRunMultiplierOverTime.Evaluate(wallRunTimer));
+                player.MovementHandler.AddVelocity(-Physics.gravity * Time.deltaTime * wallRunMultiplierOverTime.Evaluate(wallRunTimer));
             }
         }
     }

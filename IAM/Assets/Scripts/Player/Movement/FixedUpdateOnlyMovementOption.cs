@@ -13,12 +13,12 @@
     void Register()
     {
         Unregister();//don't double register
-        RegisterUpdateCall(FixedUpdateProcedure);
+        RegisterFixedUpdateCall(FixedUpdateProcedure);
     }
 
     void Unregister()
     {
-        UnregisterUpdateCall(FixedUpdateProcedure);
+        RegisterFixedUpdateCall(FixedUpdateProcedure);
     }
 
     protected abstract void FixedUpdateProcedure();

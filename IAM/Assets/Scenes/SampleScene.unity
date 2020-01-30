@@ -3338,6 +3338,41 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: wallRunMultiplierOverTime.halfTimeValue
+      value: 0.99
+      objectReference: {fileID: 0}
+    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: wallRunMultiplierOverTime.curve.m_Curve.Array.data[1].value
+      value: 0.99
+      objectReference: {fileID: 0}
+    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: wallRunMultiplierOverTime.curve.m_Curve.Array.data[1].inSlope
+      value: -0.015999986
+      objectReference: {fileID: 0}
+    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: wallRunMultiplierOverTime.curve.m_Curve.Array.data[1].outSlope
+      value: -0.015999986
+      objectReference: {fileID: 0}
+    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: wallRunMultiplierOverTime.duration
+      value: 2.5
+      objectReference: {fileID: 0}
+    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: wallRunMultiplierOverTime.curve.m_Curve.Array.data[1].time
+      value: 1.25
+      objectReference: {fileID: 0}
+    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
+        type: 3}
+      propertyPath: wallRunMultiplierOverTime.curve.m_Curve.Array.data[2].time
+      value: 2.5
+      objectReference: {fileID: 0}
     - target: {fileID: 7459663412160157025, guid: 1c25e27d1af1fb147b2a40b744699d4c,
         type: 3}
       propertyPath: m_Name
@@ -3351,7 +3386,7 @@ PrefabInstance:
     - target: {fileID: 7459663412160157037, guid: 1c25e27d1af1fb147b2a40b744699d4c,
         type: 3}
       propertyPath: m_LocalPosition.y
-      value: 0.5
+      value: 0.75
       objectReference: {fileID: 0}
     - target: {fileID: 7459663412160157037, guid: 1c25e27d1af1fb147b2a40b744699d4c,
         type: 3}
