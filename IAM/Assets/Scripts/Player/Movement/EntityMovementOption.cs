@@ -3,29 +3,46 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable,RequireComponent(typeof(PlayerMovementHandler))]
-public abstract class PlayerMovement : MonoBehaviour
+[Serializable,RequireComponent(typeof(EntityMovementHandler))]
+public abstract class EntityMovementOption : MonoBehaviour
 {
-    PlayerMovementHandler handler = null;
+    public event Action<EntityMovementOption> OnStateChangeAction;
+    EntityMovementHandler _handler = null;
+    EntityMovementHandler handler
+    {
+        get
+        {
+            if(_handler == null)
+                _handler = GetComponent<EntityMovementHandler>();
+            return _handler;
+        }
+    }
     [SerializeField] protected Player player => handler.Player;
 
-    private void OnValidate()
+    public void OnValidate()
     {
-        handler = GetComponent<PlayerMovementHandler>();
         Validate();
     }
 
-    protected virtual void Validate()
-    {}
+    [ContextMenu("Register To MovementHandler")]
+    private void Reset()
+    {
+        handler.AddMovementOption(this);
+    }
+    
+    protected virtual void Validate() { }
 
     public void StartUp()
     {
-        handler = GetComponent<PlayerMovementHandler>();
         Initialize();
     }
 
     public abstract void Stop();
 
+    /// <summary>
+    /// call base.Initialize() if you don't register
+    /// update and fixed update call on your own
+    /// </summary>
     protected abstract void Initialize();
 
     protected void RegisterUpdateCall(Action updateAction)
@@ -55,4 +72,8 @@ public abstract class PlayerMovement : MonoBehaviour
         handler.AddVelocity(vel);
     }
 
+    protected void InvokeStateChangeEvent()
+    {
+        OnStateChangeAction?.Invoke(this);
+    }
 }

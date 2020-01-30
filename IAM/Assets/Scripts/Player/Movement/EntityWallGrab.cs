@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerWallGrab : PlayerMovement
+[System.Serializable]
+public class EntityWallGrab : UpdateOnlyMovementOption
 {
     [Header("PhysicsMaterial")]
     [SerializeField] PhysicMaterial defaultMovmentMaterial = null;
@@ -23,19 +24,15 @@ public class PlayerWallGrab : PlayerMovement
 
     protected override void Initialize()
     {
+        base.Initialize();
         Validate();
-        RegisterUpdateCall(UpdateProcedure);
     }
 
-    public override void Stop()
-    {
-        UnregisterUpdateCall(UpdateProcedure);
-    }
-
-    private void UpdateProcedure()
+    protected override void UpdateProcedure()
     {
         if ( IsGrabbing && OnSteep)
         {
+            InvokeStateChangeEvent();
             playerCollider.material = wallGrabMaterial;
         }
         else

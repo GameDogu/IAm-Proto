@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerWallRun : PlayerMovement
+[System.Serializable]
+public class EntityWallRun : FixedUpdateOnlyMovementOption
 {
  
     [Header("Wall Running")]
@@ -20,6 +21,8 @@ public class PlayerWallRun : PlayerMovement
 
     float wallRunTimer = 0f;
     float minTimerValue, maxTimerValue;
+
+    bool stateChangeInvoke = true;
 
     Vector3 velocity => player.MovementHandler.Velocity;
 
@@ -44,26 +47,27 @@ public class PlayerWallRun : PlayerMovement
 
     protected override void Initialize()
     {
+        base.Initialize();
         Validate();
-        RegisterFixedUpdateCall(FixedUpdateProcedure);
     }
 
-    public override void Stop()
-    {
-        UnregisterFixedUpdateCall(FixedUpdateProcedure);
-    }
-
-    private void FixedUpdateProcedure()
+    protected override void FixedUpdateProcedure()
     {
         if (OnSteep && !OnGround && !player.MovementHandler.IsGrabbing)
         {
             //check if wall run
+            if (stateChangeInvoke)
+            {
+                stateChangeInvoke = false;
+                InvokeStateChangeEvent();
+            }
             EvaluateWallRun();
         }
         else
         {
             wallRunTimer = 0f;
             indicator.SetActive(false);
+            stateChangeInvoke = true;
         }
     }
 

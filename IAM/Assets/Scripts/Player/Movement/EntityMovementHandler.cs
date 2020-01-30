@@ -3,8 +3,12 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
+using UnityEditor;
 
-public class PlayerMovementHandler : MonoBehaviour
+/// <summary>
+/// Not abstract class cause unity serialization shits the bed in that case
+/// </summary>
+public class EntityMovementHandler : MonoBehaviour
 {
     public event Action OnUpdate;
     public event Action OnFixedUpdate;
@@ -12,7 +16,10 @@ public class PlayerMovementHandler : MonoBehaviour
     [SerializeField] Player player = null;
     public Player Player => player;
 
-    [SerializeField] List<PlayerMovement> possibleMovement = null;
+    /// <summary>
+    /// On rename go to custom inspector as well
+    /// </summary>
+    [SerializeField]List<EntityMovementOption> movementOptions = default;
 
     Rigidbody body => player.Body;
 
@@ -22,35 +29,36 @@ public class PlayerMovementHandler : MonoBehaviour
 
     public float Speed => Velocity.magnitude;
 
-    PlayerWallGrab grabHandler = null;
+    EntityWallGrab grabHandler = null;
     public bool IsGrabbing => grabHandler != null ? grabHandler.IsGrabbing : false;
 
-    PlayerJump jumpHandler = null;
+    EntityJump jumpHandler = null;
 
     private void OnValidate()
     {
-        if (possibleMovement != null)
+        if (movementOptions != null)
         {
-            grabHandler = Find(typeof(PlayerWallGrab)) as PlayerWallGrab;
-            jumpHandler = Find(typeof(PlayerJump)) as PlayerJump;
+            grabHandler = Find<EntityWallGrab>();
+            jumpHandler = Find<EntityJump>();
         }
+
     }
 
-    PlayerMovement Find(Type type)
+    T Find<T>()where T : EntityMovementOption
     {
-        for (int i = 0; i < possibleMovement.Count; i++)
+        for (int i = 0; i < movementOptions.Count; i++)
         {
-            if (possibleMovement[i] != null && possibleMovement[i].GetType() == type)
-                return possibleMovement[i];
+            if (movementOptions[i] != null && movementOptions[i] is T)
+                return movementOptions[i] as T;
         }
         return null;
     }
 
     private void Awake()
     {
-        for (int i = 0; i < possibleMovement.Count; i++)
+        for (int i = 0; i < movementOptions.Count; i++)
         {
-            possibleMovement[i].StartUp();
+            movementOptions[i].StartUp();
         }
     }
 
@@ -101,14 +109,33 @@ public class PlayerMovementHandler : MonoBehaviour
 
     public void ResetJumpPhase()
     {
-        if (jumpHandler)
+        if (jumpHandler != null)
             jumpHandler.ResetJumpPhase();
     }
 
     public bool CheckPlayerActionPreventsGroundSnapping()
     {
-        if(jumpHandler)
+        if (jumpHandler != null)
             return jumpHandler.RecentlyJumped;
         return false;
     }
+
+    public void AddMovementOption(EntityMovementOption option)
+    {
+        if (movementOptions == null)
+        {
+            Debug.Log("new list");
+            movementOptions = new List<EntityMovementOption>();
+        }
+
+        if (movementOptions.Contains(option))
+            return; //already contained don't double add
+        movementOptions.Add(option);
+
+#if UNITY_EDITOR
+        EditorUtility.SetDirty(this);
+        AssetDatabase.SaveAssets();
+#endif
+    }
+
 }

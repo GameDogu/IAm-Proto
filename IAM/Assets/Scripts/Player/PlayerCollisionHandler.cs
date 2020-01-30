@@ -13,7 +13,7 @@ public class PlayerCollisionHandler : MonoBehaviour
 
     [SerializeField] Player player = null;
     Rigidbody body => player.Body;
-    PlayerMovementHandler movementHandler => player.MovementHandler;
+    EntityMovementHandler movementHandler => player.MovementHandler;
 
     [Header("Walkability of Ground")]
     [SerializeField, Range(0f, 90f)] float maxGroundAngle = 25f;

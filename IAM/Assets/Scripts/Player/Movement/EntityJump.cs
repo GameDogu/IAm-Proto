@@ -2,7 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerJump : PlayerMovement
+[System.Serializable]
+public class EntityJump : DualLoopMovementOption
 {
     [Header("Jump")]
     [SerializeField, Range(0f, 10f)] float jumpHeight = 2f;
@@ -30,19 +31,15 @@ public class PlayerJump : PlayerMovement
 
     protected override void Initialize()
     {
-        RegisterUpdateCall(UpdateProcedure);
-        RegisterFixedUpdateCall(FixedUpdateProcedure);
-
+        base.Initialize();
         //Collision Handler events
         RegisterCollisonHandlerStartStateUpdate();
         RegisterCollisionHandlerGroundedStateUpdate();
-
     }
 
     public override void Stop()
     {
-        UnregisterUpdateCall(UpdateProcedure);
-        UnregisterFixedUpdateCall(FixedUpdateProcedure);
+        base.Stop();
         UnregisterCollisonHandlerUpdateStart();
         UnregisterCollisionHandlerGroundedStateUpdate();
     }
@@ -69,7 +66,7 @@ public class PlayerJump : PlayerMovement
         player.CollisionHandler.OnGroundedStateUpdate -= OnCollisionHandlerUpdateGrounded;
     }
 
-    private void UpdateProcedure()
+    protected override void UpdateProcedure()
     {
         desiredJump |= Input.GetKeyDown(jumpKey);
     }
@@ -85,10 +82,12 @@ public class PlayerJump : PlayerMovement
                 ResetJumpPhase();
     }
 
-    private void FixedUpdateProcedure()
+    protected override void FixedUpdateProcedure()
     {
         if (desiredJump)
         {
+            //we now are jumpings
+            InvokeStateChangeEvent();
             desiredJump = false;
             Jump();
         }

@@ -1,8 +1,10 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class PlayerPlanarMovement : PlayerMovement
+[System.Serializable]
+public class EntityPlanarMovement : DualLoopMovementOption
 {
     [Header("Speed and acceleration")]
     [SerializeField, Range(0f, 100f)] float maxSpeed = 10f;
@@ -16,30 +18,17 @@ public class PlayerPlanarMovement : PlayerMovement
 
     bool OnGround => player.CollisionHandler.OnGround;
 
-    protected override void Initialize()
-    {
-        RegisterUpdateCall(UpdateProcedure);
-        RegisterFixedUpdateCall(FixedUpdateProcedure);
-    }
-
-    public override void Stop()
-    {
-        UnregisterUpdateCall(UpdateProcedure);
-        UnregisterFixedUpdateCall(FixedUpdateProcedure);
-    }
-
-    private void UpdateProcedure()
+    protected override void UpdateProcedure()
     {
         Vector2 playerInput;
         playerInput.x = Input.GetAxis("Horizontal");
         playerInput.y = Input.GetAxis("Vertical");
         playerInput = Vector2.ClampMagnitude(playerInput, 1f);
-
-        
+        //maybe invoke state change 
         desiredVelocity = new Vector3(playerInput.x, 0f, playerInput.y) * maxSpeed;
     }
 
-    private void FixedUpdateProcedure()
+    protected override void FixedUpdateProcedure()
     {
         AdjustVelocity();
     }

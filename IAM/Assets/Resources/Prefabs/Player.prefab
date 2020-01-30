@@ -98,10 +98,10 @@ GameObject:
   - component: {fileID: 7459663412160157034}
   - component: {fileID: 7459663412160157035}
   - component: {fileID: 9098136312673472269}
-  - component: {fileID: 7590318864843507575}
-  - component: {fileID: 6510279069024067776}
-  - component: {fileID: 7228327235189188759}
-  - component: {fileID: 2688350772113844402}
+  - component: {fileID: 3193594533323777578}
+  - component: {fileID: 3156117600103026897}
+  - component: {fileID: 4868184499872480481}
+  - component: {fileID: 2070841074293547162}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -332,11 +332,11 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   player: {fileID: 7459663412160157033}
-  possibleMovement:
-  - {fileID: 7590318864843507575}
-  - {fileID: 6510279069024067776}
-  - {fileID: 2688350772113844402}
-  - {fileID: 7228327235189188759}
+  movementOptions:
+  - {fileID: 3193594533323777578}
+  - {fileID: 3156117600103026897}
+  - {fileID: 4868184499872480481}
+  - {fileID: 2070841074293547162}
 --- !u!114 &7459663412160157034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -388,7 +388,7 @@ MonoBehaviour:
   stairsMask:
     serializedVersion: 2
     m_Bits: 2048
---- !u!114 &7590318864843507575
+--- !u!114 &3193594533323777578
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -402,8 +402,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   maxSpeed: 15
   maxAccelleration: 20
-  maxAirAcceleration: 20
---- !u!114 &6510279069024067776
+  maxAirAcceleration: 15
+--- !u!114 &3156117600103026897
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -417,9 +417,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jumpHeight: 2
   jumpsInAir: 1
-  wallJumpDirectionChangeBonus: 2
+  wallJumpDirectionChangeBonus: 1
   jumpKey: 32
---- !u!114 &7228327235189188759
+--- !u!114 &4868184499872480481
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -434,8 +434,8 @@ MonoBehaviour:
   minWallRunSpeed: 2
   maxWallRunAngle: 30
   wallRunMultiplierOverTime:
-    duration: 3
-    halfTimeValue: 0.995
+    duration: 2.5
+    halfTimeValue: 0.91
     curve:
       serializedVersion: 2
       m_Curve:
@@ -449,16 +449,16 @@ MonoBehaviour:
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 1.5
-        value: 0.995
-        inSlope: -0.0066666603
-        outSlope: -0.0066666603
+        time: 1.25
+        value: 0.91
+        inSlope: -0.14399996
+        outSlope: -0.14399996
         tangentMode: 137
         weightedMode: 0
         inWeight: 0.33333334
         outWeight: 0.33333334
       - serializedVersion: 3
-        time: 3
+        time: 2.5
         value: 0
         inSlope: 0
         outSlope: 0
@@ -470,7 +470,7 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   indicator: {fileID: 5700451242333661924}
---- !u!114 &2688350772113844402
+--- !u!114 &2070841074293547162
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

@@ -62,15 +62,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Editor\Docker\Docker.cs" />
-    <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\HierachyHighlights.cs" />
-    <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\HierarchyHightlightsSettings.cs" />
-    <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\HierarchyHightlightsSettingsEditor.cs" />
-    <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\ModeSettings\ComponentHighlightSetting.cs" />
-    <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\ModeSettings\HighlightSetting.cs" />
-    <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\ModeSettings\Info\HightlightSettingInfo.cs" />
-    <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\ModeSettings\LayerHighlightSetting.cs" />
-    <Compile Include="Assets\Scripts\Editor\HierarchyHighlighting\ModeSettings\TagHightlightSetting.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\MovementOptionEditor.cs" />
+    <Compile Include="Assets\Scripts\Utility\Editor\Docker\Docker.cs" />
+    <Compile Include="Assets\Scripts\Utility\Editor\ForceCompile\ForceRecompile.cs" />
+    <Compile Include="Assets\Scripts\Utility\Editor\HierarchyHighlighting\HierachyHighlights.cs" />
+    <Compile Include="Assets\Scripts\Utility\Editor\HierarchyHighlighting\HierarchyHightlightsSettings.cs" />
+    <Compile Include="Assets\Scripts\Utility\Editor\HierarchyHighlighting\HierarchyHightlightsSettingsEditor.cs" />
+    <Compile Include="Assets\Scripts\Utility\Editor\HierarchyHighlighting\ModeSettings\ComponentHighlightSetting.cs" />
+    <Compile Include="Assets\Scripts\Utility\Editor\HierarchyHighlighting\ModeSettings\HighlightSetting.cs" />
+    <Compile Include="Assets\Scripts\Utility\Editor\HierarchyHighlighting\ModeSettings\Info\HightlightSettingInfo.cs" />
+    <Compile Include="Assets\Scripts\Utility\Editor\HierarchyHighlighting\ModeSettings\LayerHighlightSetting.cs" />
+    <Compile Include="Assets\Scripts\Utility\Editor\HierarchyHighlighting\ModeSettings\TagHightlightSetting.cs" />
     <Reference Include="UnityEditor.TestRunner">
       <HintPath>D:/unity/I-Am-Proto/IAM/Library/ScriptAssemblies/UnityEditor.TestRunner.dll</HintPath>
     </Reference>
