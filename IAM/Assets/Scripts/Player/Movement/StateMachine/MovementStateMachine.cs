@@ -9,6 +9,7 @@ using System.Linq;
 public class MovementStateMachine : MonoBehaviour
 {
     [SerializeField] List<EntityMovementOption> generalMovementOptions = null;
+    public List<EntityMovementOption> GeneralMovementOption => generalMovementOptions;
     [SerializeField] Player player = default;
     public Player Player => player;
     public MovementState CurrentState { get; protected set; }
@@ -65,6 +66,7 @@ public class MovementStateMachine : MonoBehaviour
 
     public void Transition(Transition trans)
     {
+        //TODO ayy lmao trans people lol
         throw new NotImplementedException();
     }
 }
