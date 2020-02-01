@@ -24,11 +24,11 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
 
     bool stateChangeInvoke = true;
 
-    Vector3 velocity => player.MovementHandler.Velocity;
+    Vector3 velocity => handler.Velocity;
 
     Vector3 steepNormal => player.CollisionHandler.SteepNormal;
 
-    Vector3 playerDirection => player.MovementHandler.PlayerDirection;
+    Vector3 playerDirection => handler.PlayerDirection;
 
     protected override void Validate()
     {
@@ -45,21 +45,21 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
         maxTimerValue = wallRunMultiplierOverTime.MaxTimerValue;
     }
 
-    protected override void Initialize()
+    protected override void Initialize(StateMovementHandler handler)
     {
-        base.Initialize();
+        base.Initialize(handler);
         Validate();
     }
 
     protected override void FixedUpdateProcedure()
     {
-        if (OnSteep && !OnGround && !player.MovementHandler.IsGrabbing)
+        if (OnSteep && !OnGround && !handler.IsGrabbing)
         {
             //check if wall run
             if (stateChangeInvoke)
             {
                 stateChangeInvoke = false;
-                InvokeStateChangeEvent();
+                RequestStateChange();
             }
             EvaluateWallRun();
         }
@@ -86,7 +86,7 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
             //if velocity is pointing similar direction as gravity add some opposite force
             if (Vector3.Dot(playerDirection, Physics.gravity.normalized) > 0)
             {
-                player.MovementHandler.AddVelocity(-Physics.gravity * Time.deltaTime * wallRunMultiplierOverTime.Evaluate(wallRunTimer));
+                handler.AddVelocity(-Physics.gravity * Time.deltaTime * wallRunMultiplierOverTime.Evaluate(wallRunTimer));
             }
         }
     }

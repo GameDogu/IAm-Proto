@@ -19,7 +19,7 @@ public class EntityJump : DualLoopMovementOption
     Vector3 contactNormal => collisionHandler.ContactNormal;
     Vector3 steepNormal => collisionHandler.SteepNormal;
 
-    Vector3 velocity => player.MovementHandler.Velocity;
+    Vector3 velocity => handler.Velocity;
 
     /// <summary>
     /// Because of the collision data delay we're still considered grounded the step after the jump was initiated
@@ -29,19 +29,12 @@ public class EntityJump : DualLoopMovementOption
     bool desiredJump;
     int jumpPhase, stepsSinceLastJump;
 
-    protected override void Initialize()
+    protected override void Initialize(StateMovementHandler handler)
     {
-        base.Initialize();
+        base.Initialize(handler);
         //Collision Handler events
         RegisterCollisonHandlerStartStateUpdate();
         RegisterCollisionHandlerGroundedStateUpdate();
-    }
-
-    public override void Stop()
-    {
-        base.Stop();
-        UnregisterCollisonHandlerUpdateStart();
-        UnregisterCollisionHandlerGroundedStateUpdate();
     }
 
     void RegisterCollisonHandlerStartStateUpdate()
@@ -87,7 +80,7 @@ public class EntityJump : DualLoopMovementOption
         if (desiredJump)
         {
             //we now are jumpings
-            InvokeStateChangeEvent();
+            RequestStateChange();
             desiredJump = false;
             Jump();
         }
@@ -133,7 +126,7 @@ public class EntityJump : DualLoopMovementOption
             jumpSpeed = Mathf.Max(jumpSpeed - alignedSpeed, 0f);
         }
 
-        player.MovementHandler.AddVelocity( jumpDirection * jumpSpeed + bonus);
+        handler.AddVelocity( jumpDirection * jumpSpeed + bonus);
 
     }
 

@@ -1,24 +1,19 @@
 ﻿public abstract class FixedUpdateOnlyMovementOption : EntityMovementOption
 {
-    protected override void Initialize()
+    protected override void Initialize(StateMovementHandler handler)
     {
-        Register();
+        Register(handler);
     }
 
-    public override void Stop()
+    void Register(StateMovementHandler handler)
     {
-        Unregister();
+        Unregister(handler);//don't double register
+        RegisterFixedUpdateCall(handler,FixedUpdateProcedure);
     }
 
-    void Register()
+    void Unregister(StateMovementHandler handler)
     {
-        Unregister();//don't double register
-        RegisterFixedUpdateCall(FixedUpdateProcedure);
-    }
-
-    void Unregister()
-    {
-        RegisterFixedUpdateCall(FixedUpdateProcedure);
+        RegisterFixedUpdateCall(handler,FixedUpdateProcedure);
     }
 
     protected abstract void FixedUpdateProcedure();

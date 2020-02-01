@@ -3,77 +3,65 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable,RequireComponent(typeof(EntityMovementHandler))]
+[Serializable,RequireComponent(typeof(MovementStateMachine))]
 public abstract class EntityMovementOption : MonoBehaviour
 {
-    public event Action<EntityMovementOption> OnStateChangeAction;
-    EntityMovementHandler _handler = null;
-    EntityMovementHandler handler
-    {
-        get
-        {
-            if(_handler == null)
-                _handler = GetComponent<EntityMovementHandler>();
-            return _handler;
-        }
-    }
-    [SerializeField] protected Player player => handler.Player;
+    protected MovementStateMachine EntiyMovementStateMachine;
+    protected StateMovementHandler handler => EntiyMovementStateMachine.CurrentState.MovementHandler;
+
+    [SerializeField] protected Player player => EntiyMovementStateMachine.Player;
 
     public void OnValidate()
     {
+        EntiyMovementStateMachine = GetComponent<MovementStateMachine>();
         Validate();
-    }
-
-    [ContextMenu("Register To MovementHandler")]
-    private void Reset()
-    {
-        handler.AddMovementOption(this);
     }
     
     protected virtual void Validate() { }
 
-    public void StartUp()
+    public void Init(StateMovementHandler handler)
     {
-        Initialize();
+        EntiyMovementStateMachine = GetComponent<MovementStateMachine>();
+        Initialize(handler);
     }
 
-    public abstract void Stop();
+    [ContextMenu("Add to statemachine")]
+    private void Reset()
+    {
+        OnValidate();
+        EntiyMovementStateMachine.AddGeneralMovementOption(this);
+    }
 
     /// <summary>
     /// call base.Initialize() if you don't register
     /// update and fixed update call on your own
     /// </summary>
-    protected abstract void Initialize();
+    protected abstract void Initialize(StateMovementHandler handler);
 
-    protected void RegisterUpdateCall(Action updateAction)
+    protected void RegisterUpdateCall(StateMovementHandler handler,Action updateAction)
     {
         handler.OnUpdate -= updateAction;
         handler.OnUpdate += updateAction;
     }
 
-    protected void UnregisterUpdateCall(Action updateAction)
+    protected void UnregisterUpdateCall(StateMovementHandler handler, Action updateAction)
     {
         handler.OnUpdate -= updateAction;
     }
 
-    protected void RegisterFixedUpdateCall(Action updateAction)
+    protected void RegisterFixedUpdateCall(StateMovementHandler handler, Action updateAction)
     {
         handler.OnFixedUpdate -= updateAction;
         handler.OnFixedUpdate += updateAction;
     }
 
-    protected void UnregisterFixedUpdateCall(Action updateAction)
+    protected void UnregisterFixedUpdateCall(StateMovementHandler handler, Action updateAction)
     {
         handler.OnFixedUpdate -= updateAction;
     }
 
-    protected void AddVelocityToPlayer(Vector3 vel)
+    protected void RequestStateChange()
     {
-        handler.AddVelocity(vel);
-    }
-
-    protected void InvokeStateChangeEvent()
-    {
-        OnStateChangeAction?.Invoke(this);
+        handler.RequestStateChange(this);
     }
 }

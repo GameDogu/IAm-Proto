@@ -12,7 +12,7 @@ public class EntityPlanarMovement : DualLoopMovementOption
 
     Rigidbody body => player.Body;
     Vector3 desiredVelocity;
-    Vector3 velocity => player.MovementHandler.Velocity;
+    Vector3 velocity => handler.Velocity;
 
     Vector3 contactNormal => player.CollisionHandler.ContactNormal;
 
@@ -52,6 +52,6 @@ public class EntityPlanarMovement : DualLoopMovementOption
         float newX = Mathf.MoveTowards(currentX, desiredVelocity.x, maxSpeedChange);
         float newZ = Mathf.MoveTowards(currentZ, desiredVelocity.z, maxSpeedChange);
 
-        player.MovementHandler.AddVelocity( xAxis * (newX - currentX) + zAxis * (newZ - currentZ));
+        handler.AddVelocity( xAxis * (newX - currentX) + zAxis * (newZ - currentZ));
     }
 }

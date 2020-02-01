@@ -1,27 +1,22 @@
 ﻿public abstract class DualLoopMovementOption : EntityMovementOption
 {
 
-    protected override void Initialize()
+    protected override void Initialize(StateMovementHandler handler)
     {
-        Register();
+        Register(handler);
     }
 
-    public override void Stop()
+    void Register(StateMovementHandler handler)
     {
-        Unregister();
+        Unregister(handler);//don't double register
+        RegisterUpdateCall(handler,UpdateProcedure);        
+        RegisterFixedUpdateCall(handler,FixedUpdateProcedure);
     }
 
-    void Register()
+    void Unregister(StateMovementHandler handler)
     {
-        Unregister();//don't double register
-        RegisterUpdateCall(UpdateProcedure);        
-        RegisterFixedUpdateCall(FixedUpdateProcedure);
-    }
-
-    void Unregister()
-    {
-        UnregisterFixedUpdateCall(FixedUpdateProcedure);
-        UnregisterUpdateCall(UpdateProcedure);
+        UnregisterFixedUpdateCall(handler,FixedUpdateProcedure);
+        UnregisterUpdateCall(handler,UpdateProcedure);
     }
 
     protected abstract void FixedUpdateProcedure();

@@ -94,14 +94,14 @@ GameObject:
   - component: {fileID: 8458917891410622018}
   - component: {fileID: 7459663412160157032}
   - component: {fileID: 7459663412160157033}
-  - component: {fileID: 7459663412160157039}
   - component: {fileID: 7459663412160157034}
   - component: {fileID: 7459663412160157035}
   - component: {fileID: 9098136312673472269}
-  - component: {fileID: 3193594533323777578}
-  - component: {fileID: 3156117600103026897}
-  - component: {fileID: 4868184499872480481}
-  - component: {fileID: 2070841074293547162}
+  - component: {fileID: 974798237682658563}
+  - component: {fileID: 7939000364247849961}
+  - component: {fileID: 733614396254760991}
+  - component: {fileID: 5800908487706704613}
+  - component: {fileID: 8595301209707058072}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -318,25 +318,7 @@ MonoBehaviour:
   playerCollider: {fileID: 8458917891410622018}
   body: {fileID: 7459663412160157032}
   collisionHandler: {fileID: 9098136312673472269}
-  movementHandler: {fileID: 7459663412160157039}
---- !u!114 &7459663412160157039
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7459663412160157025}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: c328ed112f215024ca93a97ab1cb85da, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  player: {fileID: 7459663412160157033}
-  movementOptions:
-  - {fileID: 3193594533323777578}
-  - {fileID: 3156117600103026897}
-  - {fileID: 4868184499872480481}
-  - {fileID: 2070841074293547162}
+  movementStateMachine: {fileID: 974798237682658563}
 --- !u!114 &7459663412160157034
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -388,7 +370,26 @@ MonoBehaviour:
   stairsMask:
     serializedVersion: 2
     m_Bits: 2048
---- !u!114 &3193594533323777578
+--- !u!114 &974798237682658563
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459663412160157025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: af5bfaf542a87044ebc9d046be420413, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  generalMovementOptions:
+  - {fileID: 7939000364247849961}
+  - {fileID: 733614396254760991}
+  - {fileID: 5800908487706704613}
+  - {fileID: 8595301209707058072}
+  player: {fileID: 7459663412160157033}
+  movementStates: []
+--- !u!114 &7939000364247849961
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -403,7 +404,7 @@ MonoBehaviour:
   maxSpeed: 15
   maxAccelleration: 20
   maxAirAcceleration: 15
---- !u!114 &3156117600103026897
+--- !u!114 &733614396254760991
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -417,9 +418,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   jumpHeight: 2
   jumpsInAir: 1
-  wallJumpDirectionChangeBonus: 1
+  wallJumpDirectionChangeBonus: 2
   jumpKey: 32
---- !u!114 &4868184499872480481
+--- !u!114 &5800908487706704613
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -435,7 +436,7 @@ MonoBehaviour:
   maxWallRunAngle: 30
   wallRunMultiplierOverTime:
     duration: 2.5
-    halfTimeValue: 0.91
+    halfTimeValue: 0.98
     curve:
       serializedVersion: 2
       m_Curve:
@@ -450,9 +451,9 @@ MonoBehaviour:
         outWeight: 0.33333334
       - serializedVersion: 3
         time: 1.25
-        value: 0.91
-        inSlope: -0.14399996
-        outSlope: -0.14399996
+        value: 0.98
+        inSlope: -0.03199997
+        outSlope: -0.03199997
         tangentMode: 137
         weightedMode: 0
         inWeight: 0.33333334
@@ -470,7 +471,7 @@ MonoBehaviour:
       m_PostInfinity: 2
       m_RotationOrder: 4
   indicator: {fileID: 5700451242333661924}
---- !u!114 &2070841074293547162
+--- !u!114 &8595301209707058072
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}

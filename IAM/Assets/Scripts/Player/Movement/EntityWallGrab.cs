@@ -22,9 +22,9 @@ public class EntityWallGrab : UpdateOnlyMovementOption
         playerCollider.material = defaultMovmentMaterial;
     }
 
-    protected override void Initialize()
+    protected override void Initialize(StateMovementHandler handler)
     {
-        base.Initialize();
+        base.Initialize(handler);
         Validate();
     }
 
@@ -32,7 +32,7 @@ public class EntityWallGrab : UpdateOnlyMovementOption
     {
         if ( IsGrabbing && OnSteep)
         {
-            InvokeStateChangeEvent();
+            RequestStateChange();
             playerCollider.material = wallGrabMaterial;
         }
         else

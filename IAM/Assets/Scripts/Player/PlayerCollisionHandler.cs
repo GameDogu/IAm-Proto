@@ -13,7 +13,7 @@ public class PlayerCollisionHandler : MonoBehaviour
 
     [SerializeField] Player player = null;
     Rigidbody body => player.Body;
-    EntityMovementHandler movementHandler => player.MovementHandler;
+    StateMovementHandler movementHandler => player.MovementStateMachine.CurrentState.MovementHandler;
 
     [Header("Walkability of Ground")]
     [SerializeField, Range(0f, 90f)] float maxGroundAngle = 25f;
@@ -98,7 +98,7 @@ public class PlayerCollisionHandler : MonoBehaviour
 
     private bool PlayerInputPrevented()
     {
-        return player.MovementHandler.CheckPlayerActionPreventsGroundSnapping();
+        return movementHandler.CheckPlayerActionPreventsGroundSnapping();
     }
 
     public bool CheckSteepContacts()

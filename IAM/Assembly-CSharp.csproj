@@ -67,7 +67,6 @@
     <Compile Include="Assets\Scripts\Agent\EnergyLeechTrigger.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\DualLoopMovementOption.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\EntityJump.cs" />
-    <Compile Include="Assets\Scripts\Player\Movement\EntityMovementHandler.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\EntityMovementOption.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\EntityPlanarMovement.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\EntityWallGrab.cs" />
@@ -75,7 +74,11 @@
     <Compile Include="Assets\Scripts\Player\Movement\FixedUpdateOnlyMovementOption.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\LookX.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\LookY.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\StateMachine\MovementState.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\StateMachine\MovementStateMachine.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\StateMachine\State.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\StateMachine\StateMovementHandler.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\StateMachine\Transition.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\UpdateOnlyMovementOption.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\WallRunTimer.cs" />
     <Compile Include="Assets\Scripts\Player\Player.cs" />

@@ -1,26 +1,20 @@
 ﻿public abstract class UpdateOnlyMovementOption : EntityMovementOption
 {
 
-    protected override void Initialize()
+    protected override void Initialize(StateMovementHandler handler)
     {
-        Register();
+        Register(handler);
     }
 
-    public override void Stop()
+    void Register(StateMovementHandler handler)
     {
-        Unregister();
+        Unregister(handler);//don't double register
+        RegisterUpdateCall(handler,UpdateProcedure);
     }
 
-
-    void Register()
+    void Unregister(StateMovementHandler handler)
     {
-        Unregister();//don't double register
-        RegisterUpdateCall(UpdateProcedure);
-    }
-
-    void Unregister()
-    {
-        UnregisterUpdateCall(UpdateProcedure);
+        UnregisterUpdateCall(handler,UpdateProcedure);
     }
 
     protected abstract void UpdateProcedure();

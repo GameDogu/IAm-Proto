@@ -16,8 +16,8 @@ public class Player : Agent
 
     [SerializeField] PlayerCollisionHandler collisionHandler = null;
     public PlayerCollisionHandler CollisionHandler => collisionHandler;
-    [SerializeField] EntityMovementHandler movementHandler = null;
-    public EntityMovementHandler MovementHandler => movementHandler;
+    [SerializeField] MovementStateMachine movementStateMachine = null;
+    public MovementStateMachine MovementStateMachine => movementStateMachine;
 
     TransformLocalInfo defaultCameraTransformInfo;
     float playerCameraDistance = 0f;
