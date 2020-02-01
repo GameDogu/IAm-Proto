@@ -7,6 +7,10 @@ using System;
 
 public class MovementStateMachineEditor : EditorWindow
 {
+    EntityEditedInfoWindow entityInfoEditor;
+    StateEditorWindow stateInfoEditor;
+
+
     [MenuItem("Movement/Statemachine Editor")]
     public static void ShowWindow()
     {
@@ -22,18 +26,75 @@ public class MovementStateMachineEditor : EditorWindow
     void Initialize()
     {
         //TODO if anything
-        var editor = CreateWindow<EntityEditedInfoWindow>(GetType());
-        var stateEditor = CreateWindow<StateEditorWindow>(GetType(), editor.GetType());
+        entityInfoEditor = CreateWindow<EntityEditedInfoWindow>(GetType());
+        stateInfoEditor = CreateWindow<StateEditorWindow>(GetType(), entityInfoEditor.GetType());
+
+        entityInfoEditor.Initialize(this, stateInfoEditor);
+        stateInfoEditor.Initialize(this, entityInfoEditor);
+
+        entityInfoEditor.OnEditedEntityChanged -= OnEntityEditedChanged;
+        entityInfoEditor.OnEditedEntityChanged += OnEntityEditedChanged;
+    }
+
+    void OnEntityEditedChanged()
+    {
+
     }
 
     public void OnGUI()
     {
+        // Draw();
+        HandleEvent();
+    }
 
+    private void HandleEvent()
+    {
+        switch (Event.current.type)
+        {
+            case EventType.MouseDown:
+                HandleMouseDown(Event.current);
+                break;
+            default:
+                break;
+        }
+
+    }
+
+    private void HandleMouseDown(Event current)
+    {
+        if (current.button == 1)
+        {
+            GenericMenu men = new GenericMenu();
+            men.AddItem(new GUIContent("Create New State"), false, CreateNewState );
+            men.ShowAsContext();
+        }
+    }
+
+    void CreateNewState()
+    {
+        MovementState state = entityInfoEditor.EntityEdited.AddNewState();
+        stateInfoEditor.CurrentStateEdited = state;
     }
 
     private void Draw()
     {
-
+        DrawHeader();
+        DrawBody();
+        DrawFooter();
     }
 
+    private void DrawFooter()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void DrawBody()
+    {
+        throw new NotImplementedException();
+    }
+
+    private void DrawHeader()
+    {
+        throw new NotImplementedException();
+    }
 }

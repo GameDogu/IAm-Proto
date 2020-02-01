@@ -6,17 +6,39 @@ using System;
 
 public class EntityEditedInfoWindow : EditorWindow
 {
+    public event Action OnEditedEntityChanged;
+
     public static void ShowWindow()
     {
         var window = GetWindow<EntityEditedInfoWindow>();
         window.Show();
     }
 
-    public MovementStateMachine EntityEdited { get; protected set; }
+    MovementStateMachineEditor stateMachineEditor;
+    StateEditorWindow stateEditor;
+    MovementStateMachine entityEdited;
+    public MovementStateMachine EntityEdited
+    {
+        get { return entityEdited; }
+        protected set
+        {
+            if (entityEdited != value)
+            {
+                entityEdited = value;
+                OnEditedEntityChanged?.Invoke();
+            }
+        }
+    }
 
     private void OnGUI()
     {
         Draw();
+    }
+
+    public void Initialize(MovementStateMachineEditor stateMachineEditor, StateEditorWindow stateEditor)
+    {
+        this.stateMachineEditor = stateMachineEditor;
+        this.stateEditor = stateEditor;
     }
 
     private void Draw()

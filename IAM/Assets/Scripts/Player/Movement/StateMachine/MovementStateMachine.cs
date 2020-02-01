@@ -8,12 +8,16 @@ using System.Linq;
 
 public class MovementStateMachine : MonoBehaviour
 {
+    static uint idGen = 0;
+    static uint IDGen => idGen++;
+
     [SerializeField] List<EntityMovementOption> generalMovementOptions = null;
     public List<EntityMovementOption> GeneralMovementOption => generalMovementOptions;
     [SerializeField] Player player = default;
     public Player Player => player;
     public MovementState CurrentState { get; protected set; }
-    [SerializeField] List<MovementState> movementStates;
+    [SerializeField] List<MovementState> movementStates = new List<MovementState>();
+    public int StateCount => movementStates.Count;
 
     public EntityMovementOption GetMovementOption(int idx)
     {
@@ -68,5 +72,23 @@ public class MovementStateMachine : MonoBehaviour
     {
         //TODO ayy lmao trans people lol
         throw new NotImplementedException();
+    }
+
+    public bool AddNewState(MovementState movementState)
+    {
+        if (!movementStates.Exists(st => st.ID == movementState.ID))
+        {
+            movementStates.Add(movementState);
+            return true;
+        }
+        return false;
+    }
+
+    public MovementState AddNewState()
+    {
+        uint id = IDGen;
+        var st = new MovementState(id, $"State {id}", this);
+        movementStates.Add(st);
+        return st;
     }
 }

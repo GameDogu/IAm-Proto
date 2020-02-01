@@ -7,13 +7,12 @@ using UnityEditor;
 public abstract class State<T>
 {
     public uint ID { get; protected set; }
-    [SerializeField]string name = "";
-    public string Name => name;
+    public string Name { get; set; }
 
     public State(uint id, string name)
     {
         ID = id;
-        this.name = name;
+        this.Name= name;
     }
 
     public abstract void Start(T prevState);
