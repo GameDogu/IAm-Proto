@@ -8,7 +8,7 @@ public abstract class EntityMovementOption : MonoBehaviour
 {
     protected MovementStateMachine EntiyMovementStateMachine;
     protected StateMovementHandler handler => EntiyMovementStateMachine.CurrentState.MovementHandler;
-
+    public abstract string Name { get; }
     [SerializeField] protected Player player => EntiyMovementStateMachine.Player;
 
     public void OnValidate()

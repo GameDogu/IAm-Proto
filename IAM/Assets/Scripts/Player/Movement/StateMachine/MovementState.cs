@@ -79,6 +79,15 @@ public class MovementState : State<MovementState>
     public void RemoveMovementOption(EntityMovementOption option)
     {
         MovementOptions.Remove(option);
+
+        for (int i = transitions.Count-1; i >= 0 ; i--)
+        {
+            var tran = transitions[i];
+            if (tran.Activator == option)
+            {
+                transitions.RemoveAt(i);
+            }
+        }
     }
 
     public void AddTransition(Transition transition)

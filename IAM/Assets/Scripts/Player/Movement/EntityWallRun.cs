@@ -14,6 +14,8 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
     [Header("Utility")]
     [SerializeField] GameObject indicator = null;
 
+    public override string Name => "Wall Run";
+
     bool OnSteep => player.CollisionHandler.OnSteep;
     bool OnGround => player.CollisionHandler.OnGround;
 

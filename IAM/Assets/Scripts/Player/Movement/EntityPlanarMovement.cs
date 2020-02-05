@@ -18,6 +18,8 @@ public class EntityPlanarMovement : DualLoopMovementOption
 
     bool OnGround => player.CollisionHandler.OnGround;
 
+    public override string Name => "Basic Movement";
+
     protected override void UpdateProcedure()
     {
         Vector2 playerInput;

@@ -1,11 +1,25 @@
-﻿using System.Collections;
+﻿using System;
+using System.Reflection;
+using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
-using System;
 
 public class EntityEditedInfoWindow : EditorWindow
 {
+    static List<Type> _instantiableTypes;
+    public static List<Type> InstantiableNodeTypes
+    {
+        get
+        {
+            if (_instantiableTypes == null)
+                _instantiableTypes = Assembly.GetAssembly(typeof(EntityMovementOption)).GetTypes().Where(t => t.IsClass && !t.IsAbstract && t.IsSubclassOf(typeof(EntityMovementOption))).ToList();
+            return _instantiableTypes;
+        }
+    }
+
+
     public event Action OnEditedEntityChanged;
 
     public static void ShowWindow()
@@ -30,6 +44,8 @@ public class EntityEditedInfoWindow : EditorWindow
         }
     }
 
+    public bool HasEntity => EntityEdited != null;
+
     private void OnGUI()
     {
         Draw();
@@ -47,10 +63,59 @@ public class EntityEditedInfoWindow : EditorWindow
 
         if (EntityEdited != null)
         {
-            for (int i = 0; i < EntityEdited.GeneralMovementOption.Count; i++)
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Movement Options For Entity:");
+            EditorGUI.indentLevel += 1;
+            for (int i = EntityEdited.GeneralMovementOptions.Count-1; i >= 0 ; i--)
             {
-                EditorGUILayout.LabelField($"{EntityEdited.GeneralMovementOption[i].GetType()}");
+                var opt = EntityEdited.GeneralMovementOptions[i];
+                EditorGUILayout.BeginHorizontal();
+
+                EditorGUILayout.LabelField(opt.Name);
+                if (GUILayout.Button("X"))
+                {
+                    EntityEdited.RemoveGeneralMovementOption(opt);
+                }
+
+                EditorGUILayout.EndHorizontal();
+            }
+            EditorGUI.indentLevel -= 1;
+
+            if (GUILayout.Button("Add General Movement Option"))
+            {
+                AddGeneralMovementOption();
             }
         }
+    }
+
+    public void Save()
+    {
+        EditorUtility.SetDirty(EntityEdited.gameObject);
+        AssetDatabase.SaveAssets();
+    }
+
+    private void AddGeneralMovementOption()
+    {
+        Debug.Log(InstantiableNodeTypes.Count);
+        GenericMenu men = new GenericMenu();
+        for (int i = 0; i < InstantiableNodeTypes.Count; i++)
+        {
+            var t = InstantiableNodeTypes[i];
+            //if (!EntityEdited.GeneralMovementOptions.Exists(op => op.GetType() == t))
+            //{
+                men.AddItem(new GUIContent(t.Name), false, 
+                () => {
+                    var opt = EntityEdited.gameObject.AddComponent(t) as EntityMovementOption;
+                    EntityEdited.AddGeneralMovementOption(opt);
+                    Save();
+                });
+            //}
+        }
+        men.ShowAsContext();
+    }
+
+    internal void RemoveState(MovementState state)
+    {
+        EntityEdited.RemoveState(state);
     }
 }

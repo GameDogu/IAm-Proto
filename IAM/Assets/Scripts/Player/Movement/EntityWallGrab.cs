@@ -17,6 +17,8 @@ public class EntityWallGrab : UpdateOnlyMovementOption
 
     public bool IsGrabbing => Input.GetKey(grabKey);
 
+    public override string Name => "Wall Grab";
+
     protected override void Validate()
     {
         playerCollider.material = defaultMovmentMaterial;

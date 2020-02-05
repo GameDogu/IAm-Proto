@@ -15,21 +15,38 @@ public class StateEditorWindow : EditorWindow
     MovementStateMachineEditor stateMachineEditor;
     EntityEditedInfoWindow entityInfoEditor;
 
-    public MovementState CurrentStateEdited { get; set; }
+    public EditorStateNode CurrentSelectedNode;
+    public IEditorDrawable CurrentObjectDisplayed { get; set; }
 
     public void Initialize(MovementStateMachineEditor stateMachineEditor, EntityEditedInfoWindow entityInfoEditor)
     {
         this.stateMachineEditor = stateMachineEditor;
         this.entityInfoEditor = entityInfoEditor;
 
+        RegisterToEvents();
+    }
+
+    private void RegisterToEvents()
+    {
         entityInfoEditor.OnEditedEntityChanged -= EditedEntityChanged;
         entityInfoEditor.OnEditedEntityChanged += EditedEntityChanged;
 
+        stateMachineEditor.OnNodeSelected -= OnNodeSelected;
+        stateMachineEditor.OnNodeSelected += OnNodeSelected;
+
+        stateMachineEditor.OnNodeDeselected -= OnNodeDeselected;
+        stateMachineEditor.OnNodeDeselected += OnNodeDeselected;
     }
 
     void EditedEntityChanged()
     {
-        Debug.Log("hello");
+        //TODO actually nothing right now, huh
+        Repaint();
+    }
+
+    public void Save()
+    {
+        entityInfoEditor.Save();
     }
 
     private void OnGUI()
@@ -39,28 +56,25 @@ public class StateEditorWindow : EditorWindow
 
     private void Draw()
     {
-        if (CurrentStateEdited != null)
+        if (CurrentObjectDisplayed != null)
         {
-            DrawHeader();
-            DrawBody();
-            DrawFooter();
+            CurrentObjectDisplayed.DrawInEditor();
         }
         else
             EditorGUILayout.LabelField("No State Selected");
     }
 
-    private void DrawFooter()
+    void OnNodeSelected(EditorStateNode node)
     {
-        CurrentStateEdited.Name = EditorGUILayout.TextField("Editing:", CurrentStateEdited.Name, new GUIStyle("BoldLabel"));
+        CurrentObjectDisplayed = node;
+        Repaint();
     }
 
-    private void DrawBody()
+    void OnNodeDeselected()
     {
-        //throw new NotImplementedException();
+        Repaint();
+        if (CurrentObjectDisplayed is EditorStateNode)
+            CurrentObjectDisplayed = null;
     }
 
-    private void DrawHeader()
-    {
-        //throw new NotImplementedException();
-    }
 }

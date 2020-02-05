@@ -12,7 +12,7 @@ public class MovementStateMachine : MonoBehaviour
     static uint IDGen => idGen++;
 
     [SerializeField] List<EntityMovementOption> generalMovementOptions = null;
-    public List<EntityMovementOption> GeneralMovementOption => generalMovementOptions;
+    public List<EntityMovementOption> GeneralMovementOptions => generalMovementOptions;
     [SerializeField] Player player = default;
     public Player Player => player;
     public MovementState CurrentState { get; protected set; }
@@ -53,9 +53,25 @@ public class MovementStateMachine : MonoBehaviour
         CurrentState.Initialize(options.ToList());
     }
 
+    public void RemoveState(MovementState state)
+    {
+        Debug.LogWarning("Not Implemented");
+    }
+
     private void Start()
     {
         CurrentState.Start(null);
+    }
+
+    public void RemoveGeneralMovementOption(EntityMovementOption opt)
+    {
+        GeneralMovementOptions.Remove(opt);
+
+        for (int i = 0; i < StateCount; i++)
+        {
+            var st = movementStates[i];
+            st.RemoveMovementOption(opt);
+        }
     }
 
     private void Update()

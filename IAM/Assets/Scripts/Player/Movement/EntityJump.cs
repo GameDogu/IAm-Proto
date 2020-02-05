@@ -26,6 +26,8 @@ public class EntityJump : DualLoopMovementOption
     /// </summary>
     public bool RecentlyJumped => stepsSinceLastJump <= 2;
 
+    public override string Name => "Jump";
+
     bool desiredJump;
     int jumpPhase, stepsSinceLastJump;
 
