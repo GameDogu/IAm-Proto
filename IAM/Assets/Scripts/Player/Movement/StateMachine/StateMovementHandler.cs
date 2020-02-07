@@ -69,21 +69,14 @@ public class StateMovementHandler
 
     public void Start()
     {
-        ClearStateChangeRequests();//to be safe
-        //for (int i = 0; i < stateBelongingToo.MovementOptions.Count; i++)
-        //{
-        //    stateBelongingToo.MovementOptions[i].StartUp(this);
-        //}
+        
     }
 
     // Update is called once per frame
     public void Update()
     {
         Velocity = body.velocity;
-
-        ClearStateChangeRequests();
         OnUpdate?.Invoke();
-        HandleStateChangeRequestQueue();
     }
 
     public void AddVelocity(Vector3 vel)
@@ -94,15 +87,10 @@ public class StateMovementHandler
     public void FixedUpdate()
     {
         Velocity = body.velocity;
-        player.CollisionHandler.UpdateState();
 
-        ClearStateChangeRequests();
         OnFixedUpdate?.Invoke();
-        HandleStateChangeRequestQueue();
 
         body.velocity = Velocity;
-
-        player.CollisionHandler.ClearState();
     }
 
     public bool CheckPlayerActionPreventsGroundSnapping()
@@ -114,17 +102,6 @@ public class StateMovementHandler
 
     public void RequestStateChange(EntityMovementOption requestor)
     {
-        stateBelongingToo.EnqueRequestStateChange(requestor);
+        stateBelongingToo.RequestStateChange(requestor);
     }
-
-    void ClearStateChangeRequests()
-    {
-        stateBelongingToo.ClearStateChangeRequests();
-    }
-
-    public void HandleStateChangeRequestQueue()
-    {
-        stateBelongingToo.HandleStateChangeRequest();
-    }
-
 }

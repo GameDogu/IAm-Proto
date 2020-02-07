@@ -2034,7 +2034,7 @@ Light:
   m_BounceIntensity: 1
   m_ColorTemperature: 6570
   m_UseColorTemperature: 0
-  m_BoundingSphereOverride: {x: 7.58e-43, y: 0, z: 4.5905e-41, w: 2.9747e-41}
+  m_BoundingSphereOverride: {x: 0.0000008142067, y: 6.323129e-19, z: 6337696, w: NaN}
   m_UseBoundingSphereOverride: 0
   m_ShadowRadius: 0
   m_ShadowAngle: 0
@@ -3338,41 +3338,6 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
-        type: 3}
-      propertyPath: wallRunMultiplierOverTime.halfTimeValue
-      value: 0.99
-      objectReference: {fileID: 0}
-    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
-        type: 3}
-      propertyPath: wallRunMultiplierOverTime.curve.m_Curve.Array.data[1].value
-      value: 0.99
-      objectReference: {fileID: 0}
-    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
-        type: 3}
-      propertyPath: wallRunMultiplierOverTime.curve.m_Curve.Array.data[1].inSlope
-      value: -0.015999986
-      objectReference: {fileID: 0}
-    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
-        type: 3}
-      propertyPath: wallRunMultiplierOverTime.curve.m_Curve.Array.data[1].outSlope
-      value: -0.015999986
-      objectReference: {fileID: 0}
-    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
-        type: 3}
-      propertyPath: wallRunMultiplierOverTime.duration
-      value: 2.5
-      objectReference: {fileID: 0}
-    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
-        type: 3}
-      propertyPath: wallRunMultiplierOverTime.curve.m_Curve.Array.data[1].time
-      value: 1.25
-      objectReference: {fileID: 0}
-    - target: {fileID: 4868184499872480481, guid: 1c25e27d1af1fb147b2a40b744699d4c,
-        type: 3}
-      propertyPath: wallRunMultiplierOverTime.curve.m_Curve.Array.data[2].time
-      value: 2.5
-      objectReference: {fileID: 0}
     - target: {fileID: 7459663412160157025, guid: 1c25e27d1af1fb147b2a40b744699d4c,
         type: 3}
       propertyPath: m_Name

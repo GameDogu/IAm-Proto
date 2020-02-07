@@ -15,12 +15,13 @@ public class MovementStateMachineEditor : EditorWindow
     StateEditorWindow stateInfoEditor;
 
     GUIStyle normalStyle;
+    GUIStyle initialStateStyle;
     GUIStyle selectedStyle;
+    GUIStyle initialStateStyleSelected;
 
     bool changed;
 
     List<EditorStateNode> nodes;
-
     public List<EditorStateNode> Nodes
     {
         get
@@ -35,20 +36,34 @@ public class MovementStateMachineEditor : EditorWindow
         }
     }
 
+    List<EditorTransition> transitions;
+    public List<EditorTransition> Transitions
+    {
+        get
+        {
+            if (transitions == null)
+                transitions = new List<EditorTransition>();
+            return transitions;
+        }
+        protected set { transitions = value; }
+    }
+
     EditorStateNode selectedNode;
     public EditorStateNode SelectedNode
     {
         get { return selectedNode; }
         protected set
         {
-            if (value != null && value != selectedNode)
+            if (value != null)
             {
+                if (selectedNode != null)
+                    selectedNode.Deselect();
                 selectedNode = value;
                 OnNodeSelected?.Invoke(selectedNode);
             }
             else if (value == null && selectedNode != null)
             {
-                selectedNode.DeselectNode();
+                selectedNode.Deselect();
                 selectedNode = value;
                 OnNodeDeselected?.Invoke();
             }
@@ -65,7 +80,7 @@ public class MovementStateMachineEditor : EditorWindow
         {
             if (_transitionCreationHelper == null)
                 _transitionCreationHelper = new TransitionCreationHelper(this);
-            return transitionCreationHelper;
+            return _transitionCreationHelper;
         }
     }
 
@@ -95,17 +110,28 @@ public class MovementStateMachineEditor : EditorWindow
         changed = false;
 
         Nodes = new List<EditorStateNode>();
+        Transitions = new List<EditorTransition>();
 
         normalStyle = new GUIStyle();
         normalStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1.png") as Texture2D;
         normalStyle.alignment = TextAnchor.MiddleCenter;
         normalStyle.border = new RectOffset(12, 12, 12, 12);
 
+        initialStateStyle = new GUIStyle();
+        initialStateStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node2.png") as Texture2D;
+        initialStateStyle.alignment = TextAnchor.MiddleCenter;
+        initialStateStyle.border = new RectOffset(12, 12, 12, 12);
+
         selectedStyle = new GUIStyle();
         selectedStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1 on.png") as Texture2D;
         selectedStyle.alignment = TextAnchor.MiddleCenter;
         selectedStyle.border = new RectOffset(12, 12, 12, 12);
 
+
+        initialStateStyleSelected = new GUIStyle();
+        initialStateStyleSelected.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node2 on.png") as Texture2D;
+        initialStateStyleSelected.alignment = TextAnchor.MiddleCenter;
+        initialStateStyleSelected.border = new RectOffset(12, 12, 12, 12);
     }
 
     void OnEntityEditedChanged()
@@ -181,6 +207,8 @@ public class MovementStateMachineEditor : EditorWindow
         if (e.button == 0)
         {
             SelectedNode = null;
+            if (transitionCreationHelper.IsMakingTransition)
+                transitionCreationHelper.Reset();
         }
         if (e.button == 1)
         {
@@ -194,11 +222,21 @@ public class MovementStateMachineEditor : EditorWindow
             MakeContextMenu(e.mousePosition);
     }
 
+    internal void InformOfTransitionEdit(EditorTransition editorTransition)
+    {
+        stateInfoEditor.CurrentObjectDisplayed = editorTransition;
+    }
+
     private void MakeContextMenu(Vector2 mousePosition)
     {
         GenericMenu men = new GenericMenu();
         men.AddItem(new GUIContent("Create New State"), false, () => CreateNewState(mousePosition));
         men.ShowAsContext();
+    }
+
+    internal void RemoveTransition(EditorTransition editorTransition)
+    {
+        Transitions.Remove(editorTransition);
     }
 
     public void Save()
@@ -214,7 +252,9 @@ public class MovementStateMachineEditor : EditorWindow
 
     private void CreateEditorNode(MovementState state,Vector2 pos)
     {
-        EditorStateNode newNode = new EditorStateNode(this, state, pos, new NodeStyle() { Width = 100, Height = 50, style = normalStyle, selectedStyle = selectedStyle });
+        EditorStateNode newNode = new EditorStateNode(this, state, pos, 
+                new NodeStyle()
+                { Width = 100, Height = 50, style = normalStyle, selectedStyle = selectedStyle, initialStateStyle = initialStateStyle, initialStateStyleSelected = initialStateStyleSelected });
         nodes.Add(newNode);
 
         newNode.OnRightClick -= OnNodeRightClicked;
@@ -230,9 +270,20 @@ public class MovementStateMachineEditor : EditorWindow
     {
         GenericMenu nodeMenu = new GenericMenu();
 
+        if(obj.IsInitialState)
+            nodeMenu.AddItem(new GUIContent("Unmakr As Initial"), false, () => obj.SetInitialState(false));
+        else
+            nodeMenu.AddItem(new GUIContent("Mark As Initial"), false, () => { obj.SetInitialState(true); InformOfIntialMark(obj.State); });
+
         nodeMenu.AddItem(new GUIContent("Create Transition"), false, () => transitionCreationHelper.OnNodeClicked(obj));
         nodeMenu.AddItem(new GUIContent("Destroy"), false, () => obj.Destroy());
         nodeMenu.ShowAsContext();
+    }
+
+    public void InformOfIntialMark(MovementState state)
+    {
+        StateMachine.OnStateMarkedAsInitial(state);
+        Repaint();
     }
 
     public void RemoveNode(EditorStateNode n,MovementState state)
@@ -247,8 +298,9 @@ public class MovementStateMachineEditor : EditorWindow
         DrawGrid(100, 0.4f, Color.gray);
         if (!entityInfoEditor.HasEntity)
             return;
-        DrawNodes();
         DrawTransitions();
+        transitionCreationHelper.Draw(Event.current.mousePosition);
+        DrawNodes();
     }
 
     /// <summary>
@@ -284,25 +336,35 @@ public class MovementStateMachineEditor : EditorWindow
 
     void DrawTransitions()
     {
-        //TODO
+        for (int i = Transitions.Count - 1; i >= 0; i--)
+        {
+            Transitions[i].Draw();
+        }
     }
 
     void DrawNodes()
     {
         for (int i = 0; i < Nodes.Count; i++)
         {
-            Nodes[i].Draw();
+            Nodes[i].DrawNode();
         }
     }
 
     public void SetNodeSelected(EditorStateNode node)
     {
-        SelectedNode = node;
+        if (transitionCreationHelper.IsMakingTransition)
+        {
+            transitionCreationHelper.OnNodeClicked(node);
+        }
+        else
+            SelectedNode = node;
     }
 
     internal void CreateTransition(EditorStateNode from, EditorStateNode to)
     {
-        throw new NotImplementedException();
+        var trans = new EditorTransition(from,to,this);
+        Transitions.Add(trans);
+        changed = true;
     }
 }
 
@@ -312,6 +374,8 @@ public class TransitionCreationHelper
 
     EditorStateNode from;
     EditorStateNode to;
+
+    public bool IsMakingTransition => from != null;
 
     public TransitionCreationHelper(MovementStateMachineEditor editor)
     {
@@ -329,9 +393,22 @@ public class TransitionCreationHelper
         }
     }
 
+    internal void Draw(Vector2 mousePos)
+    {
+        if (from != null)
+        {
+            EditorTransition.DrawTransitionLine(from.Rect.center, mousePos);
+        }
+    }
+
+    public void Reset()
+    {
+        from = to = null;
+    }
+
     private void FinishTransition()
     {
         editor.CreateTransition(from, to);
-        from = to = null;
+        Reset();
     }
 }

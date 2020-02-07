@@ -98,10 +98,11 @@ GameObject:
   - component: {fileID: 7459663412160157035}
   - component: {fileID: 9098136312673472269}
   - component: {fileID: 974798237682658563}
-  - component: {fileID: 7939000364247849961}
-  - component: {fileID: 733614396254760991}
   - component: {fileID: 5800908487706704613}
   - component: {fileID: 8595301209707058072}
+  - component: {fileID: 7942938866355307905}
+  - component: {fileID: 2186307803502463291}
+  - component: {fileID: 6115155178432951339}
   m_Layer: 8
   m_Name: Player
   m_TagString: Player
@@ -383,43 +384,12 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   generalMovementOptions:
-  - {fileID: 7939000364247849961}
-  - {fileID: 733614396254760991}
-  - {fileID: 5800908487706704613}
+  - {fileID: 7942938866355307905}
+  - {fileID: 2186307803502463291}
   - {fileID: 8595301209707058072}
+  - {fileID: 6115155178432951339}
   player: {fileID: 7459663412160157033}
   movementStates: []
---- !u!114 &7939000364247849961
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7459663412160157025}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 1e51bb777fcab4c40a704c37c66b30a5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  maxSpeed: 15
-  maxAccelleration: 20
-  maxAirAcceleration: 15
---- !u!114 &733614396254760991
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 7459663412160157025}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: cce121c0c7ff6f84a8249b3b0b2104a3, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  jumpHeight: 2
-  jumpsInAir: 1
-  wallJumpDirectionChangeBonus: 2
-  jumpKey: 32
 --- !u!114 &5800908487706704613
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -487,6 +457,88 @@ MonoBehaviour:
     type: 2}
   wallGrabMaterial: {fileID: 0}
   grabKey: 102
+--- !u!114 &7942938866355307905
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459663412160157025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1e51bb777fcab4c40a704c37c66b30a5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  maxSpeed: 10
+  maxAccelleration: 10
+  maxAirAcceleration: 1
+--- !u!114 &2186307803502463291
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459663412160157025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: cce121c0c7ff6f84a8249b3b0b2104a3, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  jumpHeight: 2
+  jumpsInAir: 2
+  wallJumpDirectionChangeBonus: 2
+  jumpKey: 32
+--- !u!114 &6115155178432951339
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7459663412160157025}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a37dc404683b9804193aebc1c811d6fa, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  minWallRunSpeed: 2
+  maxWallRunAngle: 30
+  wallRunMultiplierOverTime:
+    duration: 1
+    halfTimeValue: 0.95
+    curve:
+      serializedVersion: 2
+      m_Curve:
+      - serializedVersion: 3
+        time: 0
+        value: 1
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 0.5
+        value: 0.95
+        inSlope: -0.20000005
+        outSlope: -0.20000005
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      - serializedVersion: 3
+        time: 1
+        value: 0
+        inSlope: 0
+        outSlope: 0
+        tangentMode: 137
+        weightedMode: 0
+        inWeight: 0.33333334
+        outWeight: 0.33333334
+      m_PreInfinity: 2
+      m_PostInfinity: 2
+      m_RotationOrder: 4
+  indicator: {fileID: 0}
 --- !u!1 &7459663412649690997
 GameObject:
   m_ObjectHideFlags: 0

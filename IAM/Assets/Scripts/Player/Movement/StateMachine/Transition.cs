@@ -6,7 +6,7 @@ using UnityEngine;
 public class Transition
 {
     [NonSerialized]uint stateBelongingToID;
-    public EntityMovementOption Activator { get; protected set; }
+    public EntityMovementOption Activator { get; set; }
     public uint NextStateID { get; protected set; }
 
     public Transition(EntityMovementOption activator, uint nextStateID,MovementState state)
@@ -22,6 +22,15 @@ public class Transition
         this.Activator = state.StateMachine.GetMovementOption(activatorIDX);
         NextStateID = nextStateID;
     }
+
+    public Transition(uint nextState, MovementState state)
+    {
+        stateBelongingToID = state.ID;
+        Activator = null;
+        NextStateID = nextState;
+    }
+
+    public bool IsValid => Activator != null;
 
     public override bool Equals(object obj)
     {

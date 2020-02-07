@@ -5,11 +5,48 @@ using UnityEngine;
 
 public class PlayerCollisionHandler : MonoBehaviour
 {
+    struct CollisionHandlerStateSheet
+    {
+        PlayerCollisionHandler handler;
+
+        public int groundContatctCount;
+        public int steepContactCount;
+        public int stepsSinceLastGrounded;
+
+        public CollisionHandlerStateSheet(PlayerCollisionHandler handler, int groundContatctCount = 0, int steepContactCount = 0, int stepsSinceLastGrounded = 0)
+        {
+            this.handler = handler ?? throw new ArgumentNullException(nameof(handler));
+            this.groundContatctCount = groundContatctCount;
+            this.steepContactCount = steepContactCount;
+            this.stepsSinceLastGrounded = stepsSinceLastGrounded;
+        }
+
+        public static void CompareAndInvoke(CollisionHandlerStateSheet current,CollisionHandlerStateSheet prev)
+        {
+            var handler = current.handler;
+            if (current.stepsSinceLastGrounded == 1 && prev.stepsSinceLastGrounded == 0)
+                handler.OnInAirStart?.Invoke();
+            if (current.groundContatctCount >= 1 && prev.groundContatctCount < 1)
+                handler.OnGroundedStart?.Invoke();
+            if (current.steepContactCount >= 1 && prev.steepContactCount < 1 && current.groundContatctCount < 1)
+                handler.OnWallStart?.Invoke();
+        }
+
+    }
+
     public event Action OnStateUpdateStart;
+
     public event Action OnGroundedStateUpdate;
+    public event Action OnGroundedStart;
+
     public event Action OnInAirStateUpdate;
+    public event Action OnInAirStart;
+
     public event Action OnStateUpdateEnd;
+
     public event Action OnClearState;
+
+    public event Action OnWallStart;
 
     [SerializeField] Player player = null;
     Rigidbody body => player.Body;
@@ -23,9 +60,14 @@ public class PlayerCollisionHandler : MonoBehaviour
     [SerializeField] LayerMask probeMask = -1;
     [SerializeField] LayerMask stairsMask = -1;
 
-    Vector3 contactNormal, steepNormal;
-    public Vector3 ContactNormal => contactNormal;
-    public Vector3 SteepNormal => steepNormal;
+    public Vector3 ContactNormal { get; protected set; }
+    public Vector3 SteepNormal { get; protected set; }
+
+    CollisionHandlerStateSheet prevState;
+    CollisionHandlerStateSheet currentState;
+
+    //TODO Copy before potentialy updateing values to prev
+    //on (end of) update  state compare and invoke
 
     int groundContatctCount, steepContactCount;
 
@@ -42,10 +84,16 @@ public class PlayerCollisionHandler : MonoBehaviour
         minStairDotProd = Mathf.Cos(maxStairsAngle * Mathf.Deg2Rad);
     }
 
+    private void Start()
+    {
+        prevState = new CollisionHandlerStateSheet(this);
+        currentState = new CollisionHandlerStateSheet(this);
+    }
+
     public void ClearState()
     {
         groundContatctCount = steepContactCount = 0;
-        contactNormal = steepNormal = Vector3.zero;
+        ContactNormal = SteepNormal = Vector3.zero;
         OnClearState?.Invoke();
     }
 
@@ -61,12 +109,12 @@ public class PlayerCollisionHandler : MonoBehaviour
 
             if (groundContatctCount > 1)
             {
-                contactNormal.Normalize();
+                ContactNormal.Normalize();
             }
         }
         else
         {
-            contactNormal = Vector3.up;
+            ContactNormal = Vector3.up;
             OnInAirStateUpdate?.Invoke();
         }
         OnStateUpdateEnd?.Invoke();
@@ -92,7 +140,7 @@ public class PlayerCollisionHandler : MonoBehaviour
             return false;
         }
         groundContatctCount = 1;
-        contactNormal = hit.normal;
+        ContactNormal = hit.normal;
         return true;
     }
 
@@ -105,11 +153,11 @@ public class PlayerCollisionHandler : MonoBehaviour
     {
         if (steepContactCount > 1)
         {
-            steepNormal.Normalize();
-            if (steepNormal.y >= minGroundDotProd)
+            SteepNormal.Normalize();
+            if (SteepNormal.y >= minGroundDotProd)
             {
                 groundContatctCount = 1;
-                contactNormal = steepNormal;
+                ContactNormal = SteepNormal;
                 return true;
             }
         }
@@ -135,12 +183,12 @@ public class PlayerCollisionHandler : MonoBehaviour
             if (normal.y >= minDot)
             {
                 groundContatctCount += 1;
-                contactNormal += normal;
+                ContactNormal += normal;
             }
             else if (normal.y > -0.01f)
             {
                 steepContactCount += 1;
-                steepNormal += normal;
+                SteepNormal += normal;
             }
         }
     }
@@ -149,4 +197,9 @@ public class PlayerCollisionHandler : MonoBehaviour
     {
         EvaluateCollision(collision);
     }
+}
+
+public interface IStateTransitionEvents
+{
+    event Action<IStateTransitionEvents, object> OnStateTransitionEvent;
 }

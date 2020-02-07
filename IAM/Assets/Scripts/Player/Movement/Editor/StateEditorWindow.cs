@@ -15,8 +15,16 @@ public class StateEditorWindow : EditorWindow
     MovementStateMachineEditor stateMachineEditor;
     EntityEditedInfoWindow entityInfoEditor;
 
-    public EditorStateNode CurrentSelectedNode;
-    public IEditorDrawable CurrentObjectDisplayed { get; set; }
+    public IEditorDrawable currentObjectDisplayed;
+    public IEditorDrawable CurrentObjectDisplayed
+    {
+        get{ return currentObjectDisplayed; }
+        set
+        {
+            currentObjectDisplayed = value;
+            Repaint();
+        }
+    }
 
     public void Initialize(MovementStateMachineEditor stateMachineEditor, EntityEditedInfoWindow entityInfoEditor)
     {
@@ -67,12 +75,10 @@ public class StateEditorWindow : EditorWindow
     void OnNodeSelected(EditorStateNode node)
     {
         CurrentObjectDisplayed = node;
-        Repaint();
     }
 
     void OnNodeDeselected()
     {
-        Repaint();
         if (CurrentObjectDisplayed is EditorStateNode)
             CurrentObjectDisplayed = null;
     }

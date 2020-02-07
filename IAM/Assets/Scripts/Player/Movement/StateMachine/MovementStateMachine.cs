@@ -19,6 +19,8 @@ public class MovementStateMachine : MonoBehaviour
     [SerializeField] List<MovementState> movementStates = new List<MovementState>();
     public int StateCount => movementStates.Count;
 
+    Dictionary<uint, MovementState> idMappedMovementStates = new Dictionary<uint, MovementState>();
+
     public EntityMovementOption GetMovementOption(int idx)
     {
         if (idx >= generalMovementOptions.Count)
@@ -46,11 +48,26 @@ public class MovementStateMachine : MonoBehaviour
 
     }
 
+    Queue<EntityMovementOption> stateChangeRequests = new Queue<EntityMovementOption>();
+
     public void Awake()
     {
         CurrentState = new MovementState(0, "Everything Bagel", this);
         var options = Enumerable.Range(0, generalMovementOptions.Count);
         CurrentState.Initialize(options.ToList());
+
+        BuildStateMappingAndInitialize();
+    }
+
+    private void BuildStateMappingAndInitialize()
+    {
+        for (int i = 0; i < StateCount; i++)
+        {
+            var state = movementStates[i];
+            idMappedMovementStates.Add(state.ID, state);
+            if (state.InitialState)
+                CurrentState = state;
+        }
     }
 
     public void RemoveState(MovementState state)
@@ -65,7 +82,18 @@ public class MovementStateMachine : MonoBehaviour
 
     public void RemoveGeneralMovementOption(EntityMovementOption opt)
     {
-        GeneralMovementOptions.Remove(opt);
+        int idx = generalMovementOptions.IndexOf(opt);
+
+        if (idx < 0)
+            return;
+
+        if (idx < StateCount - 1)
+        {
+            generalMovementOptions[idx] = generalMovementOptions[StateCount - 1];
+            idx = StateCount - 1;
+        }
+        generalMovementOptions.RemoveAt(idx);
+
 
         for (int i = 0; i < StateCount; i++)
         {
@@ -74,20 +102,40 @@ public class MovementStateMachine : MonoBehaviour
         }
     }
 
+    MovementState GetStateByID(uint id)
+    {
+        if (idMappedMovementStates.ContainsKey(id))
+        {
+            return idMappedMovementStates[id];
+        }
+        throw new Exception($"Trying to transition to non recognized state {id}");
+    }
+
     private void Update()
     {
+        HandlePotentialTransition();
+
         CurrentState.Update();
+
+        HandlePotentialTransition();
     }
 
     private void FixedUpdate()
     {
+        HandlePotentialTransition();
+
         CurrentState.FixedUpdate();
+
+        HandlePotentialTransition();
     }
 
     public void Transition(Transition trans)
     {
-        //TODO ayy lmao trans people lol
-        throw new NotImplementedException();
+        //change to new state
+        var prevState = CurrentState;
+        CurrentState = GetStateByID(trans.NextStateID);
+        ClearStateChangeRequests();
+        CurrentState.Start(prevState);
     }
 
     public bool AddNewState(MovementState movementState)
@@ -106,5 +154,72 @@ public class MovementStateMachine : MonoBehaviour
         var st = new MovementState(id, $"State {id}", this);
         movementStates.Add(st);
         return st;
+    }
+
+    public void OnStateMarkedAsInitial(MovementState newlyMarked)
+    {
+        for (int i = 0; i < StateCount; i++)
+        {
+            var state = movementStates[i];
+            if (state != newlyMarked)
+            {
+                state.InitialState = false;
+            }
+        }
+    }
+
+    public void RemoveTransition(Transition transition)
+    {
+        for (int i = 0; i < StateCount; i++)
+        {
+            if (movementStates[i].RemoveTransition(transition))
+            {
+                break;
+            }
+        }
+    }
+
+    public void RemoveTransition(Transition transition, MovementState state)
+    {
+        state.RemoveTransition(transition);
+    }
+
+    //private void OnDrawGizmos()
+    //{
+    //    if (movementStates != null)
+    //    {
+    //        for (int i = 0; i < movementStates.Count; i++)
+    //        {
+    //            movementStates[i].Print(Debug.unityLogger);
+    //        }
+    //    }
+    //}
+
+    public void HandlePotentialTransition()
+    {
+        if (stateChangeRequests.Count > 0)
+        {
+            Transition trans = null;
+            while (stateChangeRequests.Count > 0 && trans == null)
+            {
+                var activator = stateChangeRequests.Dequeue();
+                trans = CurrentState.CheckTransitionRequest(activator);
+            }
+            if (trans != null)
+            {
+                Transition(trans);
+            }
+        }
+        ClearStateChangeRequests();
+    }
+
+    public void ClearStateChangeRequests()
+    {
+        stateChangeRequests.Clear();
+    }
+
+    public void EnqueRequestStateChange(EntityMovementOption requestor)
+    {
+        stateChangeRequests.Enqueue(requestor);
     }
 }

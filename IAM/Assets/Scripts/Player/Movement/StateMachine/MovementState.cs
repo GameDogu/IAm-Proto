@@ -9,8 +9,8 @@ public class MovementState : State<MovementState>
 
     [SerializeField] public List<EntityMovementOption> MovementOptions { get; protected set; }
     [SerializeField] List<Transition> transitions;
+    [SerializeField] public bool InitialState { get; set; }
 
-    Queue<EntityMovementOption> stateChangeRequests;
     public StateMovementHandler MovementHandler { get; protected set; }
 
     public MovementState(uint id,string name,MovementStateMachine stateMachine):base(id,name)
@@ -19,7 +19,6 @@ public class MovementState : State<MovementState>
         MovementOptions = new List<EntityMovementOption>();
         transitions = new List<Transition>();
         MovementHandler = new StateMovementHandler(this,stateMachine.Player);
-        stateChangeRequests = new Queue<EntityMovementOption>();
     }
 
     protected void FillMovementOptions(List<int> optionsIndexed)
@@ -42,7 +41,6 @@ public class MovementState : State<MovementState>
         MovementHandler.OnValidate();
     }
 
-
     public override void Start(MovementState prevState)
     {
         MovementHandler.Start();
@@ -56,12 +54,21 @@ public class MovementState : State<MovementState>
 
     public void FixedUpdate()
     {
+        StateMachine.Player.CollisionHandler.UpdateState();
+
         MovementHandler.FixedUpdate();
+
+        StateMachine.Player.CollisionHandler.ClearState();
     }
 
     public Transition CheckTransitionRequest(EntityMovementOption option)
     {
         return transitions.Find(tra => tra.Activator == option);
+    }
+
+    public void RequestStateChange(EntityMovementOption requestor)
+    {
+        StateMachine.EnqueRequestStateChange(requestor);
     }
 
     public void AddMovementOption(EntityMovementOption option)
@@ -95,37 +102,21 @@ public class MovementState : State<MovementState>
         transitions.Add(transition);
     }
 
-    public void RemoveTransition(Transition transition)
+    public bool RemoveTransition(Transition transition)
     {
-        transitions.Remove(transition);
+        return transitions.Remove(transition);
     }
 
-    public void HandleStateChangeRequest()
+    internal void Print(ILogger l)
     {
-        if (stateChangeRequests.Count > 0)
+        l.Log(Name);
+        if (MovementOptions != null)
         {
-            Transition trans = null;
-            while (stateChangeRequests.Count > 0 && trans == null)
+            for (int i = 0; i < MovementOptions.Count; i++)
             {
-                var activator = stateChangeRequests.Dequeue();
-                trans = CheckTransitionRequest(activator);
-            }
-            if (trans != null)
-            {
-                StateMachine.Transition(trans);
+                l.Log(MovementOptions[i].Name);
             }
         }
-    }
-
-
-    public void EnqueRequestStateChange(EntityMovementOption requestor)
-    {
-        stateChangeRequests.Enqueue(requestor);
-    }
-
-    public void ClearStateChangeRequests()
-    {
-        stateChangeRequests.Clear();
     }
 
 }

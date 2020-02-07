@@ -46,6 +46,8 @@ public class EntityEditedInfoWindow : EditorWindow
 
     public bool HasEntity => EntityEdited != null;
 
+    string prefabAssetPath = null;
+
     private void OnGUI()
     {
         Draw();
@@ -63,6 +65,8 @@ public class EntityEditedInfoWindow : EditorWindow
 
         if (EntityEdited != null)
         {
+            prefabAssetPath = PrefabUtility.GetPrefabAssetPathOfNearestInstanceRoot(EntityEdited);
+
             EditorGUILayout.Space();
             EditorGUILayout.LabelField("Movement Options For Entity:");
             EditorGUI.indentLevel += 1;
@@ -75,6 +79,7 @@ public class EntityEditedInfoWindow : EditorWindow
                 if (GUILayout.Button("X"))
                 {
                     EntityEdited.RemoveGeneralMovementOption(opt);
+                    Save();
                 }
 
                 EditorGUILayout.EndHorizontal();
@@ -92,6 +97,7 @@ public class EntityEditedInfoWindow : EditorWindow
     {
         EditorUtility.SetDirty(EntityEdited.gameObject);
         AssetDatabase.SaveAssets();
+        Repaint();
     }
 
     private void AddGeneralMovementOption()
@@ -118,4 +124,10 @@ public class EntityEditedInfoWindow : EditorWindow
     {
         EntityEdited.RemoveState(state);
     }
+}
+
+
+public class SaveHandler
+{
+    //TODO change saving depending on prefab or not
 }
