@@ -469,9 +469,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1e51bb777fcab4c40a704c37c66b30a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  maxSpeed: 10
-  maxAccelleration: 10
-  maxAirAcceleration: 1
+  maxSpeed: 15
+  maxAccelleration: 20
+  maxAirAcceleration: 20
 --- !u!114 &2186307803502463291
 MonoBehaviour:
   m_ObjectHideFlags: 0

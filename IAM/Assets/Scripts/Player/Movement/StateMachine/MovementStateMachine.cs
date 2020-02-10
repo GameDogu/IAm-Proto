@@ -48,6 +48,7 @@ public class MovementStateMachine : MonoBehaviour
 
     public void Awake()
     {
+        collisionHandlerTransitionEventHandler.SetUp();
 
         CurrentState = new MovementState(0, "Everything Bagel", this);
         var options = Enumerable.Range(0, generalMovementOptions.Count);
@@ -287,10 +288,9 @@ public class MovementStateMachine : MonoBehaviour
         public CollisionHandlerEventHandler(MovementStateMachine machine)
         {
             this.machine = machine;
-            SetUp();
         }
 
-        private void SetUp()
+        public void SetUp()
         {
             var colHandler = machine.Player.CollisionHandler;
 

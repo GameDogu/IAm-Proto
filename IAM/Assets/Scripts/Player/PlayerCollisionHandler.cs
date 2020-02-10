@@ -26,10 +26,17 @@ public class PlayerCollisionHandler : MonoBehaviour
             var handler = current.handler;
             if (current.stepsSinceLastGrounded == 1 && prev.stepsSinceLastGrounded == 0)
                 handler.OnInAirStart?.Invoke();
-            if (current.groundContatctCount >= 1 && prev.groundContatctCount < 1)
+            if (current.groundContatctCount >= 1 && prev.stepsSinceLastGrounded > 0)
                 handler.OnGroundedStart?.Invoke();
-            if (current.steepContactCount >= 1 && prev.steepContactCount < 1 && current.groundContatctCount < 1)
+            if (current.steepContactCount >= 1 && prev.steepContactCount < 1)
                 handler.OnWallStart?.Invoke();
+        }
+
+        public void CopyValues(CollisionHandlerStateSheet src)
+        {
+            groundContatctCount = src.groundContatctCount;
+            steepContactCount = src.steepContactCount;
+            stepsSinceLastGrounded = src.stepsSinceLastGrounded;
         }
 
     }
@@ -69,13 +76,27 @@ public class PlayerCollisionHandler : MonoBehaviour
     //TODO Copy before potentialy updateing values to prev
     //on (end of) update  state compare and invoke
 
-    int groundContatctCount, steepContactCount;
+    int groundContatctCount
+    {
+        get { return currentState.groundContatctCount; }
+        set { currentState.groundContatctCount = value; }
+    }
+
+    int steepContactCount
+    {
+        get { return currentState.steepContactCount; }
+        set { currentState.steepContactCount = value; }
+    }
+
+    int stepsSinceLastGrounded
+    {
+        get { return currentState.stepsSinceLastGrounded; }
+        set { currentState.stepsSinceLastGrounded = value; }
+    }
 
     public bool OnGround => groundContatctCount > 0;
     public bool OnSteep => steepContactCount > 0;
-
-    int stepsSinceLastGrounded;
-
+    
     float minGroundDotProd, minStairDotProd;
 
     private void OnValidate()
@@ -92,6 +113,7 @@ public class PlayerCollisionHandler : MonoBehaviour
 
     public void ClearState()
     {
+        prevState.CopyValues(currentState);
         groundContatctCount = steepContactCount = 0;
         ContactNormal = SteepNormal = Vector3.zero;
         OnClearState?.Invoke();
@@ -100,6 +122,7 @@ public class PlayerCollisionHandler : MonoBehaviour
     public void UpdateState()
     {
         OnStateUpdateStart?.Invoke();
+
         stepsSinceLastGrounded += 1;
         body.useGravity = true;
         if (OnGround || SnapToGround() || CheckSteepContacts())
@@ -117,6 +140,9 @@ public class PlayerCollisionHandler : MonoBehaviour
             ContactNormal = Vector3.up;
             OnInAirStateUpdate?.Invoke();
         }
+
+        CollisionHandlerStateSheet.CompareAndInvoke(currentState, prevState);
+
         OnStateUpdateEnd?.Invoke();
     }
 
