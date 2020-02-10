@@ -150,7 +150,8 @@ public class EditorStateNode: IEditorDrawable
             for (int i = 0; i < editor.StateMachine.GeneralMovementOptions.Count; i++)
             {
                 var option = editor.StateMachine.GeneralMovementOptions[i];
-                men.AddItem(new GUIContent(option.Name), false, () => { State.AddMovementOption(option); editor.Save(); });
+                if(!State.MovementOptions.Contains(option))
+                    men.AddItem(new GUIContent(option.Name), false, () => { State.AddMovementOption(option); editor.Save(); });
             }
             men.ShowAsContext();
         }

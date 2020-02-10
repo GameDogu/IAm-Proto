@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 
@@ -76,18 +78,20 @@ public class EditorTransition : IEditorDrawable
         {
             GenericMenu men = new GenericMenu();
             var possRequest = editor.StateMachine.GetPossibleTransitionRequests();
+
             for (int i = 0; i < possRequest.Count; i++)
             {
                 var option = possRequest[i];
                 TransitionRequestInfoAttribute att = Attribute.GetCustomAttribute(option.GetType(), typeof(TransitionRequestInfoAttribute)) as TransitionRequestInfoAttribute;
                 if (att != null)
-                {
-                    men.AddItem(new GUIContent(att.DisplayName,att.Type.ToString()), false, () => SetTransitionActivator(option));
+                {         
+                    men.AddItem(new GUIContent(att.Type.ToString() +"/"+att.DisplayName,att.Type.ToString()), false, () => SetTransitionActivator(option));
                 }
                 else
                 {
-                    men.AddItem(new GUIContent(option.GetType().Name, "Warning: No Transition Request Info Attribute Exists"), false, () => SetTransitionActivator(option));
+                    men.AddItem(new GUIContent("Other/"+option.GetType().Name, "Warning: No Transition Request Info Attribute Exists"), false, () => SetTransitionActivator(option));                    
                 }
+                
             }
             men.ShowAsContext();
         }
