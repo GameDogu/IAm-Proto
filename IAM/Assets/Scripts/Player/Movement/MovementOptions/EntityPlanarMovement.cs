@@ -20,6 +20,9 @@ public class EntityPlanarMovement : DualLoopMovementOption
 
     public override string Name => "Basic Movement";
 
+    PlanarMovementTransitionRequest movementRequest = new PlanarMovementTransitionRequest();
+    public override TransitionRequest TransitionRequst => movementRequest;
+
     protected override void UpdateProcedure()
     {
         Vector2 playerInput;
@@ -28,6 +31,12 @@ public class EntityPlanarMovement : DualLoopMovementOption
         playerInput = Vector2.ClampMagnitude(playerInput, 1f);
         //maybe invoke state change 
         desiredVelocity = new Vector3(playerInput.x, 0f, playerInput.y) * maxSpeed;
+
+        if (desiredVelocity.sqrMagnitude > 0)
+        {
+            RequestStateChange();
+        }
+
     }
 
     protected override void FixedUpdateProcedure()
@@ -57,3 +66,6 @@ public class EntityPlanarMovement : DualLoopMovementOption
         handler.AddVelocity( xAxis * (newX - currentX) + zAxis * (newZ - currentZ));
     }
 }
+
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.PlayerInput,"On Movement Input")]
+public class PlanarMovementTransitionRequest : TransitionRequest { }

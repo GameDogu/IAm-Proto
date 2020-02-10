@@ -25,7 +25,8 @@ public class MovementState : State<MovementState>
     {
         for (int i = 0; i < optionsIndexed.Count; i++)
         {
-            MovementOptions.Add(StateMachine.GetMovementOption(optionsIndexed[i]));
+            var opt = StateMachine.GetMovementOption(optionsIndexed[i]);
+            MovementOptions.Add(opt);
         }
     }
 
@@ -54,21 +55,17 @@ public class MovementState : State<MovementState>
 
     public void FixedUpdate()
     {
-        StateMachine.Player.CollisionHandler.UpdateState();
-
         MovementHandler.FixedUpdate();
-
-        StateMachine.Player.CollisionHandler.ClearState();
     }
 
-    public Transition CheckTransitionRequest(EntityMovementOption option)
+    public Transition CheckTransitionRequest(TransitionRequest request)
     {
-        return transitions.Find(tra => tra.Activator == option);
+        return transitions.Find(tra => tra.CheckRequest(request));
     }
 
-    public void RequestStateChange(EntityMovementOption requestor)
+    public void RequestStateChange(TransitionRequest request)
     {
-        StateMachine.EnqueRequestStateChange(requestor);
+        StateMachine.EnqueRequestStateChange(request);
     }
 
     public void AddMovementOption(EntityMovementOption option)
@@ -80,19 +77,20 @@ public class MovementState : State<MovementState>
 
         if (MovementOptions.Contains(option))
             return; //already contained don't double add
-        MovementOptions.Add(option);        
+        MovementOptions.Add(option);
     }
 
     public void RemoveMovementOption(EntityMovementOption option)
     {
-        MovementOptions.Remove(option);
-
-        for (int i = transitions.Count-1; i >= 0 ; i--)
+        if (MovementOptions.Remove(option))
         {
-            var tran = transitions[i];
-            if (tran.Activator == option)
+            for (int i = transitions.Count-1; i >= 0 ; i--)
             {
-                transitions.RemoveAt(i);
+                var tran = transitions[i];
+                if (tran.Type.IsSameRequest(option.TransitionRequst))
+                {
+                    transitions.RemoveAt(i);
+                }
             }
         }
     }
@@ -119,5 +117,16 @@ public class MovementState : State<MovementState>
         }
     }
 
+    public void RemoveTransition(uint nextStateID)
+    {
+        for (int i =transitions.Count-1; i >=0; i--)
+        {
+            var tran = transitions[i];
+            if (tran.NextStateID == nextStateID)
+            {
+                transitions.RemoveAt(i);
+            }
+        }
+    }
 }
 

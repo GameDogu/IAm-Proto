@@ -32,6 +32,9 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
 
     Vector3 playerDirection => handler.PlayerDirection;
 
+    WallRunTransitionRequest wallRunRequest = new WallRunTransitionRequest();
+    public override TransitionRequest TransitionRequst => wallRunRequest;
+
     protected override void Validate()
     {
         maxWallRunDotProd = Mathf.Cos((90f + maxWallRunAngle) * Mathf.Deg2Rad);
@@ -93,3 +96,6 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
         }
     }
 }
+
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.Physics,"On Wall Run")]
+public class WallRunTransitionRequest : TransitionRequest{ }

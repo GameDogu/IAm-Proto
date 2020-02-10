@@ -199,7 +199,3 @@ public class PlayerCollisionHandler : MonoBehaviour
     }
 }
 
-public interface IStateTransitionEvents
-{
-    event Action<IStateTransitionEvents, object> OnStateTransitionEvent;
-}

@@ -19,6 +19,9 @@ public class EntityWallGrab : UpdateOnlyMovementOption
 
     public override string Name => "Wall Grab";
 
+    WallGrabTransitionRequest wallGrabRequest = new WallGrabTransitionRequest();
+    public override TransitionRequest TransitionRequst => wallGrabRequest;
+
     protected override void Validate()
     {
         playerCollider.material = defaultMovmentMaterial;
@@ -43,3 +46,6 @@ public class EntityWallGrab : UpdateOnlyMovementOption
         }
     }
 }
+
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.PlayerInput,"On Wall Grab")]
+public class WallGrabTransitionRequest : TransitionRequest { }

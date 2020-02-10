@@ -28,6 +28,9 @@ public class EntityJump : DualLoopMovementOption
 
     public override string Name => "Jump";
 
+    JumpTransitionRequest jumpRequest = new JumpTransitionRequest();
+    public override TransitionRequest TransitionRequst => jumpRequest;
+
     bool desiredJump;
     int jumpPhase, stepsSinceLastJump;
 
@@ -142,3 +145,7 @@ public class EntityJump : DualLoopMovementOption
         return jumpHeight * (float)jumpPhase;
     }
 }
+
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.PlayerInput, "On Jump")]
+public class JumpTransitionRequest : TransitionRequest
+{}

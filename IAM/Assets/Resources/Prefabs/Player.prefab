@@ -538,7 +538,7 @@ MonoBehaviour:
       m_PreInfinity: 2
       m_PostInfinity: 2
       m_RotationOrder: 4
-  indicator: {fileID: 0}
+  indicator: {fileID: 5700451242333661924}
 --- !u!1 &7459663412649690997
 GameObject:
   m_ObjectHideFlags: 0

@@ -63,8 +63,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Player\Movement\Editor\EditorStateNode.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\EditorTransition.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\Editor\EntityEditedInfoWindow.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\Editor\MovementStateMachineEditor.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\NodeStyle.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\Editor\StateEditorWindow.cs" />
     <Compile Include="Assets\Scripts\Utility\Editor\Docker\Docker.cs" />
     <Compile Include="Assets\Scripts\Utility\Editor\ForceCompile\ForceRecompile.cs" />

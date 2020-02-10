@@ -100,8 +100,8 @@ public class StateMovementHandler
         return false;
     }
 
-    public void RequestStateChange(EntityMovementOption requestor)
+    public void RequestStateChange(TransitionRequest request)
     {
-        stateBelongingToo.RequestStateChange(requestor);
+        stateBelongingToo.RequestStateChange(request);
     }
 }
