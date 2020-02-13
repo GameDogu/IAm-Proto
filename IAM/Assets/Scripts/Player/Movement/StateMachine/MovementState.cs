@@ -7,8 +7,16 @@ public class MovementState : State<MovementState>
 {
     public MovementStateMachine StateMachine { get; protected set; }
 
-    [SerializeField] public List<EntityMovementOption> MovementOptions { get; protected set; }
+    [SerializeField] List<EntityMovementOption> movementOptions;
+
+    public IReadOnlyList<EntityMovementOption> MovementOptions => movementOptions;
+
     [SerializeField] List<Transition> transitions;
+
+    public IReadOnlyList<Transition> Transitions => transitions;
+
+    public int TransitionCount => transitions.Count;
+
     [SerializeField] public bool InitialState { get; set; }
 
     public StateMovementHandler MovementHandler { get; protected set; }
@@ -16,7 +24,7 @@ public class MovementState : State<MovementState>
     public MovementState(uint id,string name,MovementStateMachine stateMachine):base(id,name)
     {
         this.StateMachine = stateMachine;
-        MovementOptions = new List<EntityMovementOption>();
+        movementOptions = new List<EntityMovementOption>();
         transitions = new List<Transition>();
         MovementHandler = new StateMovementHandler(this,stateMachine.Player);
     }
@@ -26,7 +34,7 @@ public class MovementState : State<MovementState>
         for (int i = 0; i < optionsIndexed.Count; i++)
         {
             var opt = StateMachine.GetMovementOption(optionsIndexed[i]);
-            MovementOptions.Add(opt);
+            movementOptions.Add(opt);
         }
     }
 
@@ -72,27 +80,41 @@ public class MovementState : State<MovementState>
     {
         if (MovementOptions == null)
         {
-            MovementOptions = new List<EntityMovementOption>();
+            movementOptions = new List<EntityMovementOption>();
         }
 
-        if (MovementOptions.Contains(option))
+        if (movementOptions.Contains(option))
             return; //already contained don't double add
-        MovementOptions.Add(option);
+        movementOptions.Add(option);
     }
 
     public void RemoveMovementOption(EntityMovementOption option)
     {
-        if (MovementOptions.Remove(option))
+        if (movementOptions.Remove(option))
         {
-            for (int i = transitions.Count-1; i >= 0 ; i--)
+            PossibleTransitionRequestTypesAttribute att = Attribute.GetCustomAttribute(option.GetType(), typeof(PossibleTransitionRequestTypesAttribute)) as PossibleTransitionRequestTypesAttribute;
+            if (att != null)
             {
-                var tran = transitions[i];
-                if (tran.Type.IsSameRequest(option.TransitionRequst))
+                for (int i = transitions.Count-1; i >= 0 ; i--)
                 {
-                    transitions.RemoveAt(i);
+                    var tran = transitions[i];
+
+                    for (int j = 0; j < att.Types.Length; j++)
+                    {
+                        var type = TransitionRequest.Factory.BuildRequest(att.Types[j]);
+                        if (tran.Type.IsSameRequest(type))
+                        {
+                            transitions.RemoveAt(i);
+                        }
+                    }
                 }
             }
         }
+    }
+
+    public bool ContainsMovementOption(EntityMovementOption option)
+    {
+        return movementOptions.Contains(option);
     }
 
     public void AddTransition(Transition transition)

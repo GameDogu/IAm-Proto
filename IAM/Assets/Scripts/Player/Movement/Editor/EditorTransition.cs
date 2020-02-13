@@ -15,6 +15,8 @@ public class EditorTransition : IEditorDrawable
     EditorStateNode fromNode;
     EditorStateNode toNode;
 
+    bool causeFoldOut;
+
     public EditorTransition(EditorStateNode fromNode, EditorStateNode toNode,MovementStateMachineEditor editor)
     {
         this.editor = editor ?? throw new ArgumentNullException(nameof(editor));
@@ -25,7 +27,22 @@ public class EditorTransition : IEditorDrawable
 
         Transition = new Transition(toID, fromNode.State);
         fromNode.State.AddTransition(Transition);
+        causeFoldOut = false;
     }
+
+    public EditorTransition(Transition t, MovementStateMachineEditor editor)
+    {
+        this.editor = editor;
+        this.Transition = t;
+
+        fromID = t.StateBelongingToID;
+        toID = t.NextStateID;
+
+        fromNode = editor.GetStateByID(fromID);
+        toNode = editor.GetStateByID(toID);
+        causeFoldOut = false;
+    }
+
 
     public void DrawInEditor()
     {
@@ -46,7 +63,13 @@ public class EditorTransition : IEditorDrawable
             if (info != null)
             {
                 EditorGUILayout.LabelField(info.DisplayName);
-                EditorGUILayout.LabelField("Caused By:", info.Type.ToString());
+                causeFoldOut = EditorGUILayout.Foldout(causeFoldOut,new GUIContent($"Caused By:{info.Type.ToString()}"));
+                if (causeFoldOut)
+                {
+                    var st = new GUIStyle("Label");
+                    st.wordWrap = true;
+                    EditorGUILayout.LabelField(info.DetailedCause,st);
+                }
             }
             else
             {
@@ -77,14 +100,16 @@ public class EditorTransition : IEditorDrawable
         if (GUILayout.Button("Change Activator"))
         {
             GenericMenu men = new GenericMenu();
-            var possRequest = editor.StateMachine.GetPossibleTransitionRequests();
+            var possRequest = editor.StateMachine.GetPossibleTransitionRequests(fromNode.State);
 
             for (int i = 0; i < possRequest.Count; i++)
             {
                 var option = possRequest[i];
                 TransitionRequestInfoAttribute att = Attribute.GetCustomAttribute(option.GetType(), typeof(TransitionRequestInfoAttribute)) as TransitionRequestInfoAttribute;
                 if (att != null)
-                {         
+                {
+                    if (att.Type == TransitionRequestInfoAttribute.RequestType.None)
+                        break;
                     men.AddItem(new GUIContent(att.Type.ToString() +"/"+att.DisplayName,att.Type.ToString()), false, () => SetTransitionActivator(option));
                 }
                 else

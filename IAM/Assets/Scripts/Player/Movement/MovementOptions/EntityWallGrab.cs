@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+[System.Serializable, PossibleTransitionRequestTypes(typeof(WallGrabTransitionRequest),typeof(WallGrabReleaseTransitionRequest))]
 public class EntityWallGrab : UpdateOnlyMovementOption
 {
     [Header("PhysicsMaterial")]
@@ -20,7 +20,7 @@ public class EntityWallGrab : UpdateOnlyMovementOption
     public override string Name => "Wall Grab";
 
     WallGrabTransitionRequest wallGrabRequest = new WallGrabTransitionRequest();
-    public override TransitionRequest TransitionRequst => wallGrabRequest;
+    WallGrabReleaseTransitionRequest relaseRequest = new WallGrabReleaseTransitionRequest();
 
     protected override void Validate()
     {
@@ -37,15 +37,20 @@ public class EntityWallGrab : UpdateOnlyMovementOption
     {
         if ( IsGrabbing && OnSteep)
         {
-            RequestStateChange();
+            RequestStateChange(wallGrabRequest);
             playerCollider.material = wallGrabMaterial;
         }
         else
         {
+            RequestStateChange(relaseRequest);
             playerCollider.material = defaultMovmentMaterial;
         }
     }
 }
 
-[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.PlayerInput,"On Wall Grab")]
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.PlayerInput,"On Wall Grab","The player is on a wall and is holding the wall grab key")]
 public class WallGrabTransitionRequest : TransitionRequest { }
+
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.InputOrPhysics, "On Wall Grab End","The player is no longer holding the wall grab key, or the wall he was grabbing onto does no longer exist")]
+public class WallGrabReleaseTransitionRequest : TransitionRequest { }
+

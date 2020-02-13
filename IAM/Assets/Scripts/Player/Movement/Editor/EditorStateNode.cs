@@ -150,7 +150,7 @@ public class EditorStateNode: IEditorDrawable
             for (int i = 0; i < editor.StateMachine.GeneralMovementOptions.Count; i++)
             {
                 var option = editor.StateMachine.GeneralMovementOptions[i];
-                if(!State.MovementOptions.Contains(option))
+                if(!State.ContainsMovementOption(option))
                     men.AddItem(new GUIContent(option.Name), false, () => { State.AddMovementOption(option); editor.Save(); });
             }
             men.ShowAsContext();
@@ -159,7 +159,6 @@ public class EditorStateNode: IEditorDrawable
 
     private void DisplayCurrentAllowedOptions()
     {
-
         EditorGUILayout.LabelField("Currently Allowed Options:");
         EditorGUI.indentLevel += 1;
         for (int i = State.MovementOptions.Count - 1; i >= 0; i--)

@@ -1,12 +1,18 @@
-﻿using System;
+﻿#pragma warning disable 649
+
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEditorInternal;
 using UnityEditor;
 
 public class MovementStateMachineEditor : EditorWindow
 {
+
+    [SerializeField] MovementStateMachineEditorData settings;
+
     public event Action<EditorStateNode> OnNodeSelected;
     public event Action OnNodeDeselected;
 
@@ -14,10 +20,16 @@ public class MovementStateMachineEditor : EditorWindow
     public MovementStateMachine StateMachine => entityInfoEditor.EntityEdited;
     StateEditorWindow stateInfoEditor;
 
-    GUIStyle normalStyle;
-    GUIStyle initialStateStyle;
-    GUIStyle selectedStyle;
-    GUIStyle initialStateStyleSelected;
+    NodeStyle style
+    {
+        get
+        {
+            if (settings == null)
+                return NodeStyle.Default();
+            else
+                return settings.NodeStyle;
+        }
+    }
 
     bool changed;
 
@@ -111,33 +123,14 @@ public class MovementStateMachineEditor : EditorWindow
 
         Nodes = new List<EditorStateNode>();
         Transitions = new List<EditorTransition>();
-
-        normalStyle = new GUIStyle();
-        normalStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1.png") as Texture2D;
-        normalStyle.alignment = TextAnchor.MiddleCenter;
-        normalStyle.border = new RectOffset(12, 12, 12, 12);
-
-        initialStateStyle = new GUIStyle();
-        initialStateStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node2.png") as Texture2D;
-        initialStateStyle.alignment = TextAnchor.MiddleCenter;
-        initialStateStyle.border = new RectOffset(12, 12, 12, 12);
-
-        selectedStyle = new GUIStyle();
-        selectedStyle.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node1 on.png") as Texture2D;
-        selectedStyle.alignment = TextAnchor.MiddleCenter;
-        selectedStyle.border = new RectOffset(12, 12, 12, 12);
-
-
-        initialStateStyleSelected = new GUIStyle();
-        initialStateStyleSelected.normal.background = EditorGUIUtility.Load("builtin skins/darkskin/images/node2 on.png") as Texture2D;
-        initialStateStyleSelected.alignment = TextAnchor.MiddleCenter;
-        initialStateStyleSelected.border = new RectOffset(12, 12, 12, 12);
     }
 
     void OnEntityEditedChanged()
     {
         SelectedNode = null;
         Nodes.Clear();
+        transitionCreationHelper.Reset();
+        Transitions.Clear();
         offset = Vector2.zero;
         drag = Vector2.zero;
         LoadEntity();
@@ -146,8 +139,49 @@ public class MovementStateMachineEditor : EditorWindow
     private void LoadEntity()
     {
         //TODO for each state end transition -> create drawables
-        Debug.Log("TODO");
+        if (StateMachine == null)
+            return;
+        CreateNewNodes();
+        CreateNewTransitions();
+
         Repaint();
+    }
+
+    private void CreateNewTransitions()
+    {
+        for (int i = 0; i < StateMachine.StateCount; i++)
+        {
+            var state = StateMachine.States[i];
+            for (int j = 0; j< state.TransitionCount; j++)
+            {
+                var trans = state.Transitions[j];
+
+                EditorTransition editTrans = new EditorTransition(trans, this);
+                Transitions.Add(editTrans);
+            }
+        }
+    }
+
+    private void CreateNewNodes()
+    {
+        if (StateMachine.StateCount > 0)
+        {
+            float degChangePerNode = 360f / (float)StateMachine.StateCount;
+
+            for (int i = 0; i < StateMachine.StateCount; i++)
+            {
+                Vector2 pos = GetNodePosition(degChangePerNode, position.width,position.height,100f,50f, i, -90f);
+                CreateEditorNode(StateMachine.States[i],pos);
+            }
+        }
+    }
+
+    private Vector2 GetNodePosition(float degChangePerNode, float width,float height,float nodeWidth, float nodeHeight, int i,float shift= 0f)
+    {
+        float rad = (shift + (degChangePerNode * i))*Mathf.Deg2Rad;
+        float wR = (width * .5f) - (nodeWidth * .5f);
+        float hR = (height * .5f) - (nodeHeight * .5f);
+        return new Vector2(Mathf.Cos(rad)*wR, Mathf.Sin(rad)*hR) + new Vector2(wR,hR);
     }
 
     public void OnGUI()
@@ -252,9 +286,7 @@ public class MovementStateMachineEditor : EditorWindow
 
     private void CreateEditorNode(MovementState state,Vector2 pos)
     {
-        EditorStateNode newNode = new EditorStateNode(this, state, pos, 
-                new NodeStyle()
-                { Width = 100, Height = 50, style = normalStyle, selectedStyle = selectedStyle, initialStateStyle = initialStateStyle, initialStateStyleSelected = initialStateStyleSelected });
+        EditorStateNode newNode = new EditorStateNode(this, state, pos, style);
         nodes.Add(newNode);
 
         newNode.OnRightClick -= OnNodeRightClicked;
@@ -366,6 +398,11 @@ public class MovementStateMachineEditor : EditorWindow
         Transitions.Add(trans);
         changed = true;
     }
+
+    public EditorStateNode GetStateByID(uint id)
+    {
+        return Nodes.Find(node => node.ID == id);
+    }
 }
 
 public class TransitionCreationHelper
@@ -411,4 +448,5 @@ public class TransitionCreationHelper
         editor.CreateTransition(from, to);
         Reset();
     }
+
 }

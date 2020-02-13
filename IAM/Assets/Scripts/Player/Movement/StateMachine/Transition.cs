@@ -5,14 +5,14 @@ using UnityEngine;
 [Serializable]
 public class Transition
 {
-    uint stateBelongingToID;
+    public uint StateBelongingToID { get; protected set; }
     public TransitionRequest Type { get; set; }
     public uint NextStateID { get; protected set; }
 
     public Transition(uint nextState, MovementState state)
     {
-        stateBelongingToID = state.ID;
-        Type = null;
+        StateBelongingToID = state.ID;
+        Type = TransitionRequest.Factory.BuildRequest(typeof(TransitionRequestNone));
         NextStateID = nextState;
     }
 
@@ -20,25 +20,25 @@ public class Transition
     {
         if (state != null)
         {
-            stateBelongingToID = state.ID;
+            StateBelongingToID = state.ID;
         }
         this.Type = request;
         NextStateID = nextState;
     }
 
-    public Transition(Type requestType, uint nextState, MovementState state):this(TransitionRequestFactory.BuildRequest(requestType),nextState,state)
+    public Transition(Type requestType, uint nextState, MovementState state):this(TransitionRequest.Factory.BuildRequest(requestType),nextState,state)
     {}
 
     public Transition(TransitionRequest request, uint nextState, uint stateID)
     {
-        this.stateBelongingToID = stateID;
+        this.StateBelongingToID = stateID;
         this.Type = request;
         NextStateID = nextState;
     }
 
     public string Serialize()
     {
-        return $"{nameof(stateBelongingToID)}:{stateBelongingToID};{nameof(Type)}:{Type.GetType()};{nameof(NextStateID)}:{NextStateID}";
+        return $"{nameof(StateBelongingToID)}:{StateBelongingToID};{nameof(Type)}:{Type.GetType()};{nameof(NextStateID)}:{NextStateID}";
     }
 
     public static Transition Deserialize(string data)
@@ -52,7 +52,7 @@ public class Transition
             throw new Exception($"Failed parsing state belonging to ID. Data can't be deserialized to transition.\n data: {data}");
 
         var typeData = SplitMemberData(vars[1]);
-        TransitionRequest request = TransitionRequestFactory.BuildRequest(typeData[1]);
+        TransitionRequest request = TransitionRequest.Factory.BuildRequest(typeData[1]);
 
         var nextIDdata = SplitMemberData(vars[2], "Wrong next state serialization.");
 

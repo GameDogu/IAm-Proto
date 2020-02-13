@@ -15,7 +15,7 @@ public class MovementStateMachine : MonoBehaviour
 
     [SerializeField] List<EntityMovementOption> generalMovementOptions = null;
 
-    public List<EntityMovementOption> GeneralMovementOptions => generalMovementOptions;
+    public IReadOnlyList<EntityMovementOption> GeneralMovementOptions => generalMovementOptions;
 
     [SerializeField] Player player = default;
 
@@ -24,6 +24,8 @@ public class MovementStateMachine : MonoBehaviour
     public MovementState CurrentState { get; protected set; }
 
     [SerializeField] List<MovementState> movementStates = new List<MovementState>();
+
+    public IReadOnlyList<MovementState> States => movementStates;
 
     public int StateCount => movementStates.Count;
 
@@ -53,6 +55,12 @@ public class MovementStateMachine : MonoBehaviour
         CurrentState = new MovementState(0, "Everything Bagel", this);
         var options = Enumerable.Range(0, generalMovementOptions.Count);
         CurrentState.Initialize(options.ToList());
+
+        //for (int i = 0; i < StateCount; i++)
+        //{
+        //    movementStates[i].Initialize(null);
+        //}
+
 
         BuildStateMappingAndInitialize();
     }
@@ -262,16 +270,25 @@ public class MovementStateMachine : MonoBehaviour
         stateChangeRequests.Enqueue(request);
     }
 
-    public List<TransitionRequest> GetPossibleTransitionRequests()
+    public List<TransitionRequest> GetPossibleTransitionRequests(MovementState st)
     {
         List<TransitionRequest> poss = new List<TransitionRequest>();
 
         collisionHandlerTransitionEventHandler.AddPossibleReqeusts(ref poss);
 
-        for (int i = 0; i < generalMovementOptions.Count; i++)
+        for (int i = 0; i < st.MovementOptions.Count; i++)
         {
-            var opt = generalMovementOptions[i];
-            poss.Add(opt.TransitionRequst);
+            var opt = st.MovementOptions[i];
+
+            PossibleTransitionRequestTypesAttribute att = Attribute.GetCustomAttribute(opt.GetType(), typeof(PossibleTransitionRequestTypesAttribute)) as PossibleTransitionRequestTypesAttribute;
+            if (att != null)
+            {
+                for (int j = 0; j < att.Types.Length; j++)
+                {
+                    var reqT = TransitionRequest.Factory.BuildRequest(att.Types[j]);
+                    poss.Add(reqT);
+                }
+            }
         }
 
         return poss;
@@ -332,7 +349,7 @@ public class MovementStateMachine : MonoBehaviour
         }
     }
 }
-[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.Physics, "On Player Hits Ground")]
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.Physics, "On Player Hits Ground","The player model has a collision with a ground collider and was in the air previously")]
 public class OnGroundHitTransitionRequest : TransitionRequest
 {
     //public TransitionRequestOnGroundHit(uint id) : base(id)
@@ -340,7 +357,7 @@ public class OnGroundHitTransitionRequest : TransitionRequest
     //}
 }
 
-[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.Physics, "On Player Starts Being In Air")]
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.Physics, "On Player Starts Being In Air","The player model is not in contact with any collider, and was in the previous contact")]
 public class OnInAirTransitionRequest : TransitionRequest
 {
     //public TransitionRequestOnStartBeingInAir(uint id) : base(id)
@@ -348,5 +365,5 @@ public class OnInAirTransitionRequest : TransitionRequest
     //}
 }
 
-[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.Physics,"On Player Hits Wall")]
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.Physics,"On Player Hits Wall","The player is in contact with a wall collider, and was not in the previous update")]
 public class OnHitWallTransitionRequest : TransitionRequest { }

@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+[System.Serializable,PossibleTransitionRequestTypes(typeof(WallRunTransitionRequest))]
 public class EntityWallRun : FixedUpdateOnlyMovementOption
 {
  
@@ -33,7 +33,6 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
     Vector3 playerDirection => handler.PlayerDirection;
 
     WallRunTransitionRequest wallRunRequest = new WallRunTransitionRequest();
-    public override TransitionRequest TransitionRequst => wallRunRequest;
 
     protected override void Validate()
     {
@@ -60,12 +59,6 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
     {
         if (OnSteep && !OnGround && !handler.IsGrabbing)
         {
-            //check if wall run
-            if (stateChangeInvoke)
-            {
-                stateChangeInvoke = false;
-                RequestStateChange();
-            }
             EvaluateWallRun();
         }
         else
@@ -84,6 +77,12 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
         float dotValue = Vector3.Dot(velocity.XZ().normalized, steepNormal.XZ().normalized);
         if (dotValue <= 0 && dotValue >= maxWallRunDotProd)
         {
+            //check if wall run
+            if (stateChangeInvoke)
+            {
+                stateChangeInvoke = false;
+                RequestStateChange(wallRunRequest);
+            }
             //wallrunning
             indicator.SetActive(true);
             wallRunTimer += Time.deltaTime;
@@ -97,5 +96,5 @@ public class EntityWallRun : FixedUpdateOnlyMovementOption
     }
 }
 
-[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.Physics,"On Wall Run")]
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.Physics,"On Wall Run","On Wall, not on ground, and not grabbing wall as well as above a certain speed and movement direction not to steep (or shallow) to the wall")]
 public class WallRunTransitionRequest : TransitionRequest{ }

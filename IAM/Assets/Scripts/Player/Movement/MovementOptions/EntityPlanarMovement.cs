@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+[System.Serializable,PossibleTransitionRequestTypes(typeof(PlanarMovementTransitionRequest))]
 public class EntityPlanarMovement : DualLoopMovementOption
 {
     [Header("Speed and acceleration")]
@@ -21,8 +21,7 @@ public class EntityPlanarMovement : DualLoopMovementOption
     public override string Name => "Basic Movement";
 
     PlanarMovementTransitionRequest movementRequest = new PlanarMovementTransitionRequest();
-    public override TransitionRequest TransitionRequst => movementRequest;
-
+   
     protected override void UpdateProcedure()
     {
         Vector2 playerInput;
@@ -34,9 +33,8 @@ public class EntityPlanarMovement : DualLoopMovementOption
 
         if (desiredVelocity.sqrMagnitude > 0)
         {
-            RequestStateChange();
+            RequestStateChange(movementRequest);
         }
-
     }
 
     protected override void FixedUpdateProcedure()
@@ -67,5 +65,5 @@ public class EntityPlanarMovement : DualLoopMovementOption
     }
 }
 
-[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.PlayerInput,"On Movement Input")]
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.PlayerInput,"On Movement Input","Input vector squared length (of horizontal and vertical axis) is greater than 0")]
 public class PlanarMovementTransitionRequest : TransitionRequest { }

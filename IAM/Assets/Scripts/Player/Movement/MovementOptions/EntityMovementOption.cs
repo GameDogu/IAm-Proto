@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 
 [Serializable, RequireComponent(typeof(MovementStateMachine))]
@@ -9,7 +10,6 @@ public abstract class EntityMovementOption : MonoBehaviour
     protected MovementStateMachine EntiyMovementStateMachine;
     protected StateMovementHandler handler => EntiyMovementStateMachine.CurrentState.MovementHandler;
     public abstract string Name { get; }
-    public abstract TransitionRequest TransitionRequst{ get; }
 
     [SerializeField] protected Player player => EntiyMovementStateMachine.Player;
 
@@ -62,8 +62,24 @@ public abstract class EntityMovementOption : MonoBehaviour
         handler.OnFixedUpdate -= updateAction;
     }
 
-    protected void RequestStateChange()
+    protected void RequestStateChange(TransitionRequest request)
     {
-        handler.RequestStateChange(TransitionRequst);
+        handler.RequestStateChange(request);
+    }
+}
+
+[AttributeUsage(AttributeTargets.Class)]
+public class PossibleTransitionRequestTypesAttribute : Attribute
+{
+    public Type[] Types { get; protected set; }
+
+    public PossibleTransitionRequestTypesAttribute(params Type[] types)
+    {
+        var request = types.Where(ob => ob.IsSubclassOf(typeof(TransitionRequest))).ToArray();
+        Types = new Type[request.Length];
+        for (int i = 0; i < request.Length; i++)
+        {
+            Types[i] = request[i];
+        }
     }
 }

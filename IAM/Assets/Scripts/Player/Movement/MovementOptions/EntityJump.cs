@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[System.Serializable]
+[System.Serializable,PossibleTransitionRequestTypes(typeof(JumpTransitionRequest))]
 public class EntityJump : DualLoopMovementOption
 {
     [Header("Jump")]
@@ -29,7 +29,6 @@ public class EntityJump : DualLoopMovementOption
     public override string Name => "Jump";
 
     JumpTransitionRequest jumpRequest = new JumpTransitionRequest();
-    public override TransitionRequest TransitionRequst => jumpRequest;
 
     bool desiredJump;
     int jumpPhase, stepsSinceLastJump;
@@ -85,7 +84,8 @@ public class EntityJump : DualLoopMovementOption
         if (desiredJump)
         {
             //we now are jumpings
-            RequestStateChange();
+            //TODO MOVE REQUEST TO UPDATE PROCEDURE
+            RequestStateChange(jumpRequest);
             desiredJump = false;
             Jump();
         }
@@ -146,6 +146,8 @@ public class EntityJump : DualLoopMovementOption
     }
 }
 
-[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.PlayerInput, "On Jump")]
+[TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.PlayerInput, "On Jump","The player has pressed the jump button and the fixed update procedure acknowledged this")]
 public class JumpTransitionRequest : TransitionRequest
-{}
+{
+    //TODO MOVE REQUEST TO UPDATE PROCEDURE
+}
