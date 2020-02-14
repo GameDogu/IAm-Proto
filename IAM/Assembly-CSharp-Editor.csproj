@@ -62,13 +62,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Assets\Scripts\Player\Movement\Editor\EditorStateNode.cs" />
-    <Compile Include="Assets\Scripts\Player\Movement\Editor\EditorTransition.cs" />
-    <Compile Include="Assets\Scripts\Player\Movement\Editor\EntityEditedInfoWindow.cs" />
-    <Compile Include="Assets\Scripts\Player\Movement\Editor\MovementStateMachineEditor.cs" />
-    <Compile Include="Assets\Scripts\Player\Movement\Editor\MovementStateMachineEditorData.cs" />
-    <Compile Include="Assets\Scripts\Player\Movement\Editor\NodeStyle.cs" />
-    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateEditorWindow.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineDataEditor\MovementStateMachineDataEditor.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\EditorStateNode.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\EditorTransition.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\EntityEditedInfoWindow.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\MovementStateMachineEditor.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\MovementStateMachineEditorSettings.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\NodeStyle.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\StateEditorWindow.cs" />
     <Compile Include="Assets\Scripts\Utility\Editor\Docker\Docker.cs" />
     <Compile Include="Assets\Scripts\Utility\Editor\ForceCompile\ForceRecompile.cs" />
     <Compile Include="Assets\Scripts\Utility\Editor\HierarchyHighlighting\HierachyHighlights.cs" />

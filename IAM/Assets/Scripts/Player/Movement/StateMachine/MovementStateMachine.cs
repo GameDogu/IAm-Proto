@@ -52,9 +52,9 @@ public class MovementStateMachine : MonoBehaviour
     {
         collisionHandlerTransitionEventHandler.SetUp();
 
-        CurrentState = new MovementState(0, "Everything Bagel", this);
-        var options = Enumerable.Range(0, generalMovementOptions.Count);
-        CurrentState.Initialize(options.ToList());
+        //CurrentState = new MovementState(0, "Everything Bagel", this);
+        //var options = Enumerable.Range(0, generalMovementOptions.Count);
+        //CurrentState.Initialize(options.);
 
         //for (int i = 0; i < StateCount; i++)
         //{
@@ -102,13 +102,11 @@ public class MovementStateMachine : MonoBehaviour
     //        }
     //    }
     //}
-#endregion
+    #endregion
 
-    public EntityMovementOption GetMovementOption(int idx)
+    public EntityMovementOption GetMovementOption(string typeName)
     {
-        if (idx >= generalMovementOptions.Count)
-            throw new IndexOutOfRangeException();
-        return generalMovementOptions[idx];
+        return generalMovementOptions.Find(opt => opt.GetType().Name == typeName);
     }
 
     public int GetIndexForMovementOption(EntityMovementOption option)
@@ -120,7 +118,6 @@ public class MovementStateMachine : MonoBehaviour
     {
         if (generalMovementOptions == null)
         {
-            Debug.Log("New List");
             generalMovementOptions = new List<EntityMovementOption>();
         }
 
@@ -187,7 +184,7 @@ public class MovementStateMachine : MonoBehaviour
             var state = movementStates[i];
             if (state != newlyMarked)
             {
-                state.InitialState = false;
+                state.IsInitialState = false;
             }
         }
     }
@@ -228,7 +225,7 @@ public class MovementStateMachine : MonoBehaviour
         {
             var state = movementStates[i];
             idMappedMovementStates.Add(state.ID, state);
-            if (state.InitialState)
+            if (state.IsInitialState)
                 CurrentState = state;
         }
     }
@@ -292,6 +289,20 @@ public class MovementStateMachine : MonoBehaviour
         }
 
         return poss;
+    }
+
+    public void FillDataObject(MovementStateMachineData data)
+    {
+        for (int i = 0; i < generalMovementOptions.Count; i++)
+        {
+            data.AddGeneralMovementOption(generalMovementOptions[i]);
+        }
+
+        for (int i = 0; i < StateCount; i++)
+        {
+            data.AddState(movementStates[i]);
+        }
+
     }
 
     class CollisionHandlerEventHandler

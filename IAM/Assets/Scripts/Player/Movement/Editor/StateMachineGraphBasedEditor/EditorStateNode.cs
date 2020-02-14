@@ -20,7 +20,7 @@ public class EditorStateNode: IEditorDrawable
 
     public uint ID => State.ID;
 
-    public bool IsInitialState => State.InitialState;
+    public bool IsInitialState => State.IsInitialState;
 
     Rect nodeRect;
 
@@ -122,10 +122,10 @@ public class EditorStateNode: IEditorDrawable
 
         EditorGUILayout.Space();
 
-        bool prev = State.InitialState;
-        State.InitialState = EditorGUILayout.Toggle("Initial State", State.InitialState);
+        bool prev = State.IsInitialState;
+        State.IsInitialState = EditorGUILayout.Toggle("Initial State", State.IsInitialState);
 
-        if (State.InitialState && !prev)
+        if (State.IsInitialState && !prev)
             editor.InformOfIntialMark(State);
 
         EditorGUILayout.Space();
@@ -139,7 +139,7 @@ public class EditorStateNode: IEditorDrawable
 
     public void SetInitialState(bool value)
     {
-        State.InitialState = value;
+        State.IsInitialState = value;
     }
 
     private void DisplayAddOptionButton()

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -29,52 +30,43 @@ public class Transition
     public Transition(Type requestType, uint nextState, MovementState state):this(TransitionRequest.Factory.BuildRequest(requestType),nextState,state)
     {}
 
-    public Transition(TransitionRequest request, uint nextState, uint stateID)
+    public Transition(TransitionRequest requestType, uint nextState, uint stateID)
     {
         this.StateBelongingToID = stateID;
-        this.Type = request;
+        this.Type = requestType;
         NextStateID = nextState;
     }
 
-    public string Serialize()
-    {
-        return $"{nameof(StateBelongingToID)}:{StateBelongingToID};{nameof(Type)}:{Type.GetType()};{nameof(NextStateID)}:{NextStateID}";
-    }
-
-    public static Transition Deserialize(string data)
-    {
-        string[] vars = SplitMemberData(data, "Wrong serialized data.",';',3);
-
-        var stateBelongToData = SplitMemberData(vars[0], "Wrong state belonging to serialization.");
-
-        uint stateBelongingTo = 0;
-        if (!uint.TryParse(stateBelongToData[1], out stateBelongingTo))
-            throw new Exception($"Failed parsing state belonging to ID. Data can't be deserialized to transition.\n data: {data}");
-
-        var typeData = SplitMemberData(vars[1]);
-        TransitionRequest request = TransitionRequest.Factory.BuildRequest(typeData[1]);
-
-        var nextIDdata = SplitMemberData(vars[2], "Wrong next state serialization.");
-
-        uint nextID = 0;
-        if (!uint.TryParse(nextIDdata[1], out nextID))
-            throw new Exception($"Failed parsing next state ID. Data can't be deserialized to transition.\n data: {data}");
-
-        return new Transition(request, nextID, stateBelongingTo);
-    }
-
-    static string[] SplitMemberData(string data, string exceptionAddon = "", char splitChar = ':', int resExpectedLength = 2)
-    {
-        var res = data.Split(splitChar);
-
-        if (res.Length < resExpectedLength)
-            throw new Exception($"{exceptionAddon} Data can't be deserialize to transition.");
-        return res;
-    }
+    public Transition(Type requestType, uint nextState, uint stateID):this(TransitionRequest.Factory.BuildRequest(requestType),nextState,stateID)
+    {}
 
     public bool CheckRequest(TransitionRequest request)
     {
         return Type.IsSameRequest(request);
     }
+
+    [Serializable]
+    public class Data
+    {
+        [SerializeField] uint stateID;
+        public uint StateID => stateID;
+        [SerializeField] uint nextState;
+        public uint NextState => nextState;
+        [SerializeField] string requestType;
+        public string ReqeustType => requestType;
+
+        public Data(Transition t)
+        {
+            stateID = t.StateBelongingToID;
+            nextState = t.NextStateID;
+            requestType = t.Type.GetType().Name;
+        }
+
+        public Transition Create()
+        {
+            return new Transition(System.Type.GetType(requestType), nextState, stateID);
+        }
+    }
+
 }
 

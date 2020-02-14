@@ -58,6 +58,8 @@ public class EditorTransition : IEditorDrawable
         EditorGUILayout.LabelField("Activation:", new GUIStyle("BoldLabel"));
         if (Transition.Type != null)
         {
+            //TODO change to 
+            //Transition.Type.GetInfo()
             var info = Attribute.GetCustomAttribute(Transition.Type.GetType(), typeof(TransitionRequestInfoAttribute)) as TransitionRequestInfoAttribute;
 
             if (info != null)

@@ -11,7 +11,7 @@ using UnityEditor;
 public class MovementStateMachineEditor : EditorWindow
 {
 
-    [SerializeField] MovementStateMachineEditorData settings;
+    [SerializeField] MovementStateMachineEditorSettings settings;
 
     public event Action<EditorStateNode> OnNodeSelected;
     public event Action OnNodeDeselected;

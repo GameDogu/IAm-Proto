@@ -16,6 +16,11 @@ public abstract class TransitionRequest
         return this.GetType() == req.GetType();
     }
 
+    public TransitionRequestInfoAttribute GetInfo()
+    {
+        return Attribute.GetCustomAttribute(GetType(), typeof(TransitionRequestInfoAttribute)) as TransitionRequestInfoAttribute;
+    }
+
     public static class Factory
     {
         public static TransitionRequest BuildRequest(string type)
@@ -31,7 +36,6 @@ public abstract class TransitionRequest
             return Activator.CreateInstance(type) as TransitionRequest;
         }
     }
-
 }
 
 [TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.None, "No Activation","No Cause")]

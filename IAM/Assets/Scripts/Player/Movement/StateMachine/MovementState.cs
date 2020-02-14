@@ -17,7 +17,7 @@ public class MovementState : State<MovementState>
 
     public int TransitionCount => transitions.Count;
 
-    [SerializeField] public bool InitialState { get; set; }
+    [SerializeField] public bool IsInitialState { get; set; }
 
     public StateMovementHandler MovementHandler { get; protected set; }
 
@@ -29,7 +29,7 @@ public class MovementState : State<MovementState>
         MovementHandler = new StateMovementHandler(this,stateMachine.Player);
     }
 
-    protected void FillMovementOptions(List<int> optionsIndexed)
+    protected void FillMovementOptions(List<string> optionsIndexed)
     {
         for (int i = 0; i < optionsIndexed.Count; i++)
         {
@@ -38,7 +38,7 @@ public class MovementState : State<MovementState>
         }
     }
 
-    public void Initialize(List<int> movementOptionsForState)
+    public void Initialize(List<string> movementOptionsForState)
     {
         FillMovementOptions(movementOptionsForState);
 
@@ -150,5 +150,46 @@ public class MovementState : State<MovementState>
             }
         }
     }
+
+    [Serializable]
+    public class Data
+    {
+        [SerializeField] uint id;
+        public uint ID => id;
+        [SerializeField] string name;
+        public string Name => name;
+        [SerializeField] bool isInitial;
+        public bool IsInitial => isInitial;
+        [SerializeField] List<string> allowedMovements;
+        public IReadOnlyList<string> AllowedMovements => allowedMovements;
+        [SerializeField] List<Transition.Data> transitions;
+        public IReadOnlyList<Transition.Data> Transitions => transitions;
+
+        public Data(MovementState state)
+        {
+            id = state.ID;
+            name = state.Name;
+            isInitial = state.IsInitialState;
+            allowedMovements = new List<string>();
+            for (int i = 0; i < state.movementOptions.Count; i++)
+            {
+                allowedMovements.Add(state.movementOptions[i].GetType().Name);
+            }
+            transitions = new List<Transition.Data>();
+            for (int i = 0; i < state.transitions.Count; i++)
+            {
+                transitions.Add(new Transition.Data(state.transitions[i]));
+            }
+        }
+        public MovementState Create(MovementStateMachine machineFor)
+        {
+            MovementState state = new MovementState(id, name, machineFor);
+            state.IsInitialState = isInitial;
+
+            state.Initialize(allowedMovements);
+            return state;
+        }
+    }
+
 }
 

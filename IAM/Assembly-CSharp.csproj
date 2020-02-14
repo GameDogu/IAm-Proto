@@ -79,6 +79,7 @@
     <Compile Include="Assets\Scripts\Player\Movement\MovementOptions\Utility\WallRunTimer.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\StateMachine\MovementState.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\StateMachine\MovementStateMachine.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\StateMachine\MovementStateMachineData.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\StateMachine\State.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\StateMachine\StateMovementHandler.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\StateMachine\Transition.cs" />
