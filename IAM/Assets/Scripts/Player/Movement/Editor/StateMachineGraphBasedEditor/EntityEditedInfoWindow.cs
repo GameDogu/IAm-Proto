@@ -21,6 +21,7 @@ public class EntityEditedInfoWindow : EditorWindow
 
 
     public event Action OnEditedEntityChanged;
+    public event Action OnEntityReloaded;
 
     public static void ShowWindow()
     {
@@ -90,6 +91,13 @@ public class EntityEditedInfoWindow : EditorWindow
             {
                 AddGeneralMovementOption();
             }
+
+            if (GUILayout.Button("Reload"))
+            {
+                EntityEdited.ReloadFromData();
+                OnEntityReloaded?.Invoke();
+            }
+
         }
     }
 

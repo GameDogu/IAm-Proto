@@ -2,24 +2,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
 public class MovementState : State<MovementState>
 {
     public MovementStateMachine StateMachine { get; protected set; }
 
-    [SerializeField] List<EntityMovementOption> movementOptions;
+    List<EntityMovementOption> movementOptions;
 
     public IReadOnlyList<EntityMovementOption> MovementOptions => movementOptions;
 
-    [SerializeField] List<Transition> transitions;
+    List<Transition> transitions;
 
     public IReadOnlyList<Transition> Transitions => transitions;
 
     public int TransitionCount => transitions.Count;
 
-    [SerializeField] public bool IsInitialState { get; set; }
+    public bool IsInitialState { get; set; }
 
     public StateMovementHandler MovementHandler { get; protected set; }
+
+    bool isInitialized;
 
     public MovementState(uint id,string name,MovementStateMachine stateMachine):base(id,name)
     {
@@ -27,6 +28,7 @@ public class MovementState : State<MovementState>
         movementOptions = new List<EntityMovementOption>();
         transitions = new List<Transition>();
         MovementHandler = new StateMovementHandler(this,stateMachine.Player);
+        isInitialized = false;
     }
 
     protected void FillMovementOptions(List<string> optionsIndexed)
@@ -37,12 +39,15 @@ public class MovementState : State<MovementState>
             movementOptions.Add(opt);
         }
     }
-
-    public void Initialize(List<string> movementOptionsForState)
+    
+    void Initialize(List<string> movementOptionsForState)
     {
+        if (isInitialized)
+            return;
         FillMovementOptions(movementOptionsForState);
 
         MovementHandler.Initialize();
+        isInitialized = true;
     }
 
     void OnValidate()
@@ -162,8 +167,8 @@ public class MovementState : State<MovementState>
         public bool IsInitial => isInitial;
         [SerializeField] List<string> allowedMovements;
         public IReadOnlyList<string> AllowedMovements => allowedMovements;
-        [SerializeField] List<Transition.Data> transitions;
-        public IReadOnlyList<Transition.Data> Transitions => transitions;
+        [SerializeField] List<Transition.Data> dataTransitions;
+        public IReadOnlyList<Transition.Data> DataTransitions => dataTransitions;
 
         public Data(MovementState state)
         {
@@ -175,10 +180,10 @@ public class MovementState : State<MovementState>
             {
                 allowedMovements.Add(state.movementOptions[i].GetType().Name);
             }
-            transitions = new List<Transition.Data>();
+            dataTransitions = new List<Transition.Data>();
             for (int i = 0; i < state.transitions.Count; i++)
             {
-                transitions.Add(new Transition.Data(state.transitions[i]));
+                dataTransitions.Add(new Transition.Data(state.transitions[i]));
             }
         }
         public MovementState Create(MovementStateMachine machineFor)
@@ -187,6 +192,12 @@ public class MovementState : State<MovementState>
             state.IsInitialState = isInitial;
 
             state.Initialize(allowedMovements);
+
+            for (int i = 0; i < dataTransitions.Count; i++)
+            {
+                state.AddTransition(dataTransitions[i].Create(machineFor));
+            }
+
             return state;
         }
     }

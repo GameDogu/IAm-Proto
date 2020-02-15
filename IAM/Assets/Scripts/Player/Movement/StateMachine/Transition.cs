@@ -3,16 +3,17 @@ using System.Reflection;
 using System.Collections.Generic;
 using UnityEngine;
 
-[Serializable]
+
 public class Transition
 {
-    public uint StateBelongingToID { get; protected set; }
+    MovementState stateBelongingTo;
+    public uint StateBelongingToID => stateBelongingTo.ID;
     public TransitionRequest Type { get; set; }
     public uint NextStateID { get; protected set; }
 
     public Transition(uint nextState, MovementState state)
     {
-        StateBelongingToID = state.ID;
+        stateBelongingTo = state;
         Type = TransitionRequest.Factory.BuildRequest(typeof(TransitionRequestNone));
         NextStateID = nextState;
     }
@@ -21,7 +22,7 @@ public class Transition
     {
         if (state != null)
         {
-            StateBelongingToID = state.ID;
+            stateBelongingTo = state;
         }
         this.Type = request;
         NextStateID = nextState;
@@ -30,14 +31,14 @@ public class Transition
     public Transition(Type requestType, uint nextState, MovementState state):this(TransitionRequest.Factory.BuildRequest(requestType),nextState,state)
     {}
 
-    public Transition(TransitionRequest requestType, uint nextState, uint stateID)
+    public Transition(TransitionRequest requestType, uint nextState, uint stateID,MovementStateMachine machine)
     {
-        this.StateBelongingToID = stateID;
+        this.stateBelongingTo = machine.GetStateByID(stateID);
         this.Type = requestType;
         NextStateID = nextState;
     }
 
-    public Transition(Type requestType, uint nextState, uint stateID):this(TransitionRequest.Factory.BuildRequest(requestType),nextState,stateID)
+    public Transition(Type requestType, uint nextState, uint stateID,MovementStateMachine machine):this(TransitionRequest.Factory.BuildRequest(requestType),nextState,stateID,machine)
     {}
 
     public bool CheckRequest(TransitionRequest request)
@@ -62,9 +63,9 @@ public class Transition
             requestType = t.Type.GetType().Name;
         }
 
-        public Transition Create()
+        public Transition Create(MovementStateMachine machine)
         {
-            return new Transition(System.Type.GetType(requestType), nextState, stateID);
+            return new Transition(System.Type.GetType(requestType), nextState, stateID,machine);
         }
     }
 

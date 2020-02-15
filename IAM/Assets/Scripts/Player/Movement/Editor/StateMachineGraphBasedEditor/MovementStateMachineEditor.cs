@@ -119,6 +119,10 @@ public class MovementStateMachineEditor : EditorWindow
 
         entityInfoEditor.OnEditedEntityChanged -= OnEntityEditedChanged;
         entityInfoEditor.OnEditedEntityChanged += OnEntityEditedChanged;
+
+        entityInfoEditor.OnEntityReloaded -= OnEntityEditedChanged;
+        entityInfoEditor.OnEntityReloaded += OnEntityEditedChanged;
+
         changed = false;
 
         Nodes = new List<EditorStateNode>();
@@ -141,6 +145,8 @@ public class MovementStateMachineEditor : EditorWindow
         //TODO for each state end transition -> create drawables
         if (StateMachine == null)
             return;
+        if (!StateMachine.IsLoaded)
+            StateMachine.LoadFromData();
         CreateNewNodes();
         CreateNewTransitions();
 
@@ -268,7 +274,7 @@ public class MovementStateMachineEditor : EditorWindow
         men.ShowAsContext();
     }
 
-    internal void RemoveTransition(EditorTransition editorTransition)
+    public void RemoveTransition(EditorTransition editorTransition)
     {
         Transitions.Remove(editorTransition);
     }
@@ -333,6 +339,18 @@ public class MovementStateMachineEditor : EditorWindow
         DrawTransitions();
         transitionCreationHelper.Draw(Event.current.mousePosition);
         DrawNodes();
+        DrawGUI();
+    }
+
+    private void DrawGUI()
+    {
+        if (StateMachine == null)
+            return;
+        //TODO
+        if (GUILayout.Button("Save"))
+        {
+            MovementStateMachineData.Save(StateMachine);
+        }
     }
 
     /// <summary>

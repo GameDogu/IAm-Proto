@@ -39,6 +39,9 @@ public class StateEditorWindow : EditorWindow
         entityInfoEditor.OnEditedEntityChanged -= EditedEntityChanged;
         entityInfoEditor.OnEditedEntityChanged += EditedEntityChanged;
 
+        entityInfoEditor.OnEntityReloaded -= EditedEntityChanged;
+        entityInfoEditor.OnEntityReloaded += EditedEntityChanged;
+
         stateMachineEditor.OnNodeSelected -= OnNodeSelected;
         stateMachineEditor.OnNodeSelected += OnNodeSelected;
 

@@ -79,7 +79,7 @@ public class MovementStateMachineData : ScriptableObject
         states.Add(new MovementState.Data(state));
     }
 
-    public static MovementStateMachineData CreateData(MovementStateMachine machine, string assetStoragePath)
+    public static MovementStateMachineData CreateAssetAndSave(MovementStateMachine machine, string assetStoragePath)
     {
         MovementStateMachineData data = CreateInstance<MovementStateMachineData>();
 
@@ -90,6 +90,31 @@ public class MovementStateMachineData : ScriptableObject
         AssetDatabase.Refresh();
 
         return data;
+    }
+
+    public static bool Save(MovementStateMachine machine, out MovementStateMachineData data)
+    {
+        string path = EditorUtility.OpenFolderPanel("Save Data", "", "stateMachineMovementData");
+        if (path.Length != 0)
+        {
+            //Success
+            data = machine.Save(path);
+            return true;
+        }
+        data = null;
+        return false;
+    }
+
+    public static bool Save(MovementStateMachine machine)
+    {
+        string path = EditorUtility.OpenFolderPanel("Save Data", "", "stateMachineMovementData");
+        if (path.Length != 0)
+        {
+            //Success
+            machine.Save(path);
+            return true;
+        }
+        return false;
     }
 
 }

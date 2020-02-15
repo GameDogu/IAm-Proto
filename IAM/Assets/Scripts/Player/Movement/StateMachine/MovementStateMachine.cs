@@ -13,22 +13,53 @@ public class MovementStateMachine : MonoBehaviour
 
     #region Members
 
-    [SerializeField] List<EntityMovementOption> generalMovementOptions = null;
-
-    public IReadOnlyList<EntityMovementOption> GeneralMovementOptions => generalMovementOptions;
-
     [SerializeField] Player player = default;
+
+    public string PlayerPropertyName => nameof(player);
 
     public Player Player => player;
 
+    [HideInInspector]List<EntityMovementOption> generalMovementOptions = null;
+
+    public IReadOnlyList<EntityMovementOption> GeneralMovementOptions => generalMovementOptions;
+
     public MovementState CurrentState { get; protected set; }
 
-    [SerializeField] List<MovementState> movementStates = new List<MovementState>();
+    [HideInInspector] List<MovementState> movementStates = new List<MovementState>();
 
     public IReadOnlyList<MovementState> States => movementStates;
 
     public int StateCount => movementStates.Count;
 
+    string movementStateMachineDataAssetPath;
+    [HideInInspector] public string MovementStateMachineDataAssetPath
+    {
+        get { return movementStateMachineDataAssetPath; }
+        set
+        {
+            if (value != movementStateMachineDataAssetPath)
+            {
+                isLoadedFromData = false;
+                data = null;
+                movementStateMachineDataAssetPath = value;
+            }
+        }
+    }
+    MovementStateMachineData data;
+
+    public MovementStateMachineData Data
+    {
+        get
+        {
+            if (data == null)
+                TryLoadData();
+            return data;
+        }
+    }
+    bool isLoadedFromData;
+    public bool IsLoaded => isLoadedFromData;
+
+    bool isMapped;
     Dictionary<uint, MovementState> idMappedMovementStates = new Dictionary<uint, MovementState>();
 
     Queue<TransitionRequest> stateChangeRequests = new Queue<TransitionRequest>();
@@ -52,17 +83,9 @@ public class MovementStateMachine : MonoBehaviour
     {
         collisionHandlerTransitionEventHandler.SetUp();
 
-        //CurrentState = new MovementState(0, "Everything Bagel", this);
-        //var options = Enumerable.Range(0, generalMovementOptions.Count);
-        //CurrentState.Initialize(options.);
+        LoadFromData();
 
-        //for (int i = 0; i < StateCount; i++)
-        //{
-        //    movementStates[i].Initialize(null);
-        //}
-
-
-        BuildStateMappingAndInitialize();
+        BuildStateMapping();
     }
 
     private void Start()
@@ -104,6 +127,7 @@ public class MovementStateMachine : MonoBehaviour
     //}
     #endregion
 
+    #region General Movement Option
     public EntityMovementOption GetMovementOption(string typeName)
     {
         return generalMovementOptions.Find(opt => opt.GetType().Name == typeName);
@@ -149,7 +173,9 @@ public class MovementStateMachine : MonoBehaviour
             st.RemoveMovementOption(opt);
         }
     }
+    #endregion
 
+    #region States
     public bool AddNewState(MovementState movementState)
     {
         if (!movementStates.Exists(st => st.ID == movementState.ID))
@@ -168,8 +194,11 @@ public class MovementStateMachine : MonoBehaviour
         return st;
     }
 
-    MovementState GetStateByID(uint id)
+    public MovementState GetStateByID(uint id)
     {
+        if (!isMapped)
+            BuildStateMapping();
+
         if (idMappedMovementStates.ContainsKey(id))
         {
             return idMappedMovementStates[id];
@@ -203,6 +232,28 @@ public class MovementStateMachine : MonoBehaviour
         }
     }
 
+    private void BuildStateMapping()
+    {
+        if (isMapped)
+            return;
+        for (int i = 0; i < StateCount; i++)
+        {
+            var state = movementStates[i];
+            idMappedMovementStates.Add(state.ID, state);
+        }
+        isMapped = true;
+    }
+
+    private void ClearIdMapping()
+    {
+        idMappedMovementStates.Clear();
+        isMapped = false;
+    }
+
+
+    #endregion
+
+    #region Transitions
     public void RemoveTransition(Transition transition)
     {
         for (int i = 0; i < StateCount; i++)
@@ -217,17 +268,6 @@ public class MovementStateMachine : MonoBehaviour
     public void RemoveTransition(Transition transition, MovementState state)
     {
         state.RemoveTransition(transition);
-    }
-
-    private void BuildStateMappingAndInitialize()
-    {
-        for (int i = 0; i < StateCount; i++)
-        {
-            var state = movementStates[i];
-            idMappedMovementStates.Add(state.ID, state);
-            if (state.IsInitialState)
-                CurrentState = state;
-        }
     }
 
     public void Transition(Transition trans)
@@ -290,7 +330,9 @@ public class MovementStateMachine : MonoBehaviour
 
         return poss;
     }
+    #endregion
 
+    #region Serialization
     public void FillDataObject(MovementStateMachineData data)
     {
         for (int i = 0; i < generalMovementOptions.Count; i++)
@@ -305,6 +347,44 @@ public class MovementStateMachine : MonoBehaviour
 
     }
 
+    public MovementStateMachineData Save(string path)
+    {
+        return MovementStateMachineData.CreateAssetAndSave(this, path);
+    }
+
+    private void TryLoadData()
+    {
+        isLoadedFromData = false;
+#if UNITY_EDITOR
+        data = UnityEditor.AssetDatabase.LoadAssetAtPath<MovementStateMachineData>(MovementStateMachineDataAssetPath);
+#else
+        data = Resources.Load<MovementStateMachineData>(MovementStateMachineDataAssetPath);
+#endif
+    }
+
+    public void LoadFromData()
+    {
+        if (isLoadedFromData)
+            return;
+
+        generalMovementOptions.Clear();
+        movementStates.Clear();
+        CurrentState = null;
+        ClearIdMapping();
+
+        CurrentState = Data.InitializeStateMachine(this);
+        isLoadedFromData = true;
+    }
+
+    public void ReloadFromData()
+    {
+        isLoadedFromData = false;
+        LoadFromData();
+    }
+
+    #endregion
+
+    #region internal classes
     class CollisionHandlerEventHandler
     {
         MovementStateMachine machine;
@@ -359,6 +439,7 @@ public class MovementStateMachine : MonoBehaviour
             possRequests.Add(onHitWallTransitionRequest);
         }
     }
+#endregion
 }
 [TransitionRequestInfo(TransitionRequestInfoAttribute.RequestType.Physics, "On Player Hits Ground","The player model has a collision with a ground collider and was in the air previously")]
 public class OnGroundHitTransitionRequest : TransitionRequest

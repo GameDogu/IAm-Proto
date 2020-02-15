@@ -10,6 +10,9 @@ public class MovementStateMachineDataEditor : Editor
     bool generaldataFoldOut;
     bool statesFoldOut;
 
+    Vector2 allowedMovementsScrollPosition;
+    Vector2 transitionsScrollPosition;
+
     public override void OnInspectorGUI()
     {
         var data = target as MovementStateMachineData;
@@ -47,10 +50,10 @@ public class MovementStateMachineDataEditor : Editor
 
         EditorGUILayout.LabelField(content);//is initial
 
-        DisplayList(st.AllowedMovements, new GUIContent("Allowed Movements:"),          mov => EditorGUILayout.LabelField(mov), new GUIStyle("BoldLabel"));
-        EditorGUILayout.Space();
-        DisplayList(st.Transitions, new GUIContent("Transitions:"),DrawTransition,
-            new GUIStyle("BoldLabel"));
+        DisplayList(st.AllowedMovements, new GUIContent("State Allowed Movements:"),          mov => EditorGUILayout.LabelField(mov), new GUIStyle("BoldLabel"),ref allowedMovementsScrollPosition);        
+
+        DisplayList(st.DataTransitions, new GUIContent("Transitions:"),DrawTransition,
+            new GUIStyle("BoldLabel"),ref transitionsScrollPosition);
     }
 
     void DrawTransition(Transition.Data tr)
@@ -79,13 +82,12 @@ public class MovementStateMachineDataEditor : Editor
         EditorGUILayout.LabelField("Next State ID: ", $"{tr.NextState}");
     }
 
-    void DisplayList<T>(IReadOnlyList<T> list, GUIContent header, Action<T>drawContentFunc, GUIStyle headerStyle)
+    void DisplayList<T>(IReadOnlyList<T> list, GUIContent header, Action<T>drawContentFunc, GUIStyle headerStyle, ref Vector2 scrollVec)
     {
         if (drawContentFunc == null || list == null)
             return;
 
         EditorGUILayout.Space();
-
         if (headerStyle != null)
         {
             EditorGUILayout.LabelField(header,headerStyle);
@@ -94,12 +96,14 @@ public class MovementStateMachineDataEditor : Editor
         {
             EditorGUILayout.LabelField(header);
         }
-        EditorGUI.indentLevel -= 1;
+        scrollVec = EditorGUILayout.BeginScrollView(scrollVec, false, true);
+        EditorGUI.indentLevel += 1;
         for (int i = 0; i < list.Count; i++)
         {
             drawContentFunc(list[i]);
         }
-        EditorGUI.indentLevel += 1;
+        EditorGUI.indentLevel -= 1;
+        EditorGUILayout.EndScrollView();
         EditorGUILayout.Space();
     }
 
@@ -115,7 +119,12 @@ public class MovementStateMachineDataEditor : Editor
     {
         if (data.GeneralOptionsData == null)
             return;
-        generaldataFoldOut = EditorGUILayout.Foldout(generaldataFoldOut, "Generally allowed movement options:", new GUIStyle("BoldLabel"));
+        var content = new GUIContent("Machine Movement Options:");
+
+        var style = new GUIStyle("BoldLabel");
+        style.wordWrap = true;
+
+        generaldataFoldOut = EditorGUILayout.Foldout(generaldataFoldOut, content, style);
         if (generaldataFoldOut)
         {
             EditorGUI.indentLevel += 1;
