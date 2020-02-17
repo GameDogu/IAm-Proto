@@ -235,9 +235,11 @@ public class EditorTransition : IEditorDrawable
         Vector2 lineVec = (from - toPoint);
         Vector2 arrowDir = lineVec.normalized;
 
-        var p1 = Rotate(arrowDir, 45f);
-        var p2 = Rotate(arrowDir, -45f);
-        Handles.DrawPolyLine(from, toPoint, toPoint + p1 * arrowSize, toPoint + p2 * arrowSize, toPoint);
+        var dirP1 = Rotate(arrowDir, 45f);
+        var dirp2 = Rotate(arrowDir, -45f);
+        var p1 = toPoint + dirP1 * arrowSize;
+        var p2 = toPoint + dirp2 * arrowSize;
+        Handles.DrawPolyLine(from, toPoint, p1, p2, toPoint);
     }
 
     static Vector2 Rotate(Vector2 vec, float deg)

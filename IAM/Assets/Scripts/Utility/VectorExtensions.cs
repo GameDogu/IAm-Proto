@@ -64,4 +64,10 @@ public static class VectorExtensions
         return new Vector3(v.y, v.x, val);
     }
 
+    public static float GetAngleDeg(this Vector2 v)
+    {
+        float angle = Mathf.Acos(v.y) * Mathf.Rad2Deg;
+        return v.x < 0f ? 360f - angle : angle;
+    }
+
 }

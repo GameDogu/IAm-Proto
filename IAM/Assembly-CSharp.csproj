@@ -65,6 +65,7 @@
     <Compile Include="Assets\Scripts\Agent\Agent.cs" />
     <Compile Include="Assets\Scripts\Agent\BaseAgent.cs" />
     <Compile Include="Assets\Scripts\Agent\EnergyLeechTrigger.cs" />
+    <Compile Include="Assets\Scripts\Camera\OrbitCamera.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\LookX.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\LookY.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\MovementOptions\DualLoopMovementOption.cs" />
