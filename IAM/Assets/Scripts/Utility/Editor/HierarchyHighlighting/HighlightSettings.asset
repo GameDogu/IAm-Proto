@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 25c7ccd861cec5e44984129711abca3e, type: 3}
   m_Name: HighlightSettings
   m_EditorClassIdentifier: 
-  Mode: 0
+  Mode: 2
   tagSettings:
   - Settings:
       backgroundColor: {r: 0.048282295, g: 0.13458398, b: 0.2924528, a: 1}
@@ -24,15 +24,25 @@ MonoBehaviour:
       textColor: {r: 0, g: 0, b: 0, a: 1}
       Style: 1
     Name: MainCamera
+  - Settings:
+      backgroundColor: {r: 0.76, g: 0.76, b: 0.76, a: 1}
+      textColor: {r: 0, g: 0, b: 0, a: 1}
+      Style: 0
+    Name: 
   layerSettings: []
   componentSetting:
   - Settings:
-      backgroundColor: {r: 0.7075472, g: 0.21693665, b: 0.21693665, a: 1}
-      textColor: {r: 0, g: 0, b: 0, a: 1}
-      Style: 0
-    type: NavMeshAgent
+      backgroundColor: {r: 0.16558382, g: 0.20072159, b: 0.5754717, a: 1}
+      textColor: {r: 1, g: 1, b: 1, a: 1}
+      Style: 1
+    type: Player
   - Settings:
-      backgroundColor: {r: 0.75323284, g: 0.764151, b: 0.28475437, a: 1}
+      backgroundColor: {r: 0.34330332, g: 0.7647059, b: 0.28627455, a: 1}
       textColor: {r: 0, g: 0, b: 0, a: 1}
-      Style: 0
-    type: NavMeshAgent
+      Style: 1
+    type: Camera
+  - Settings:
+      backgroundColor: {r: 0.19339623, g: 0.7735849, b: 0.70729697, a: 1}
+      textColor: {r: 0, g: 0, b: 0, a: 1}
+      Style: 1
+    type: WorldManager

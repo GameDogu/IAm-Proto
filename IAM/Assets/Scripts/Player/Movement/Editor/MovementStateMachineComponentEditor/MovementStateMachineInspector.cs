@@ -23,9 +23,15 @@ public class MovementStateMachineInspector : Editor
             tar.MovementStateMachineDataAssetPath = AssetDatabase.GetAssetPath(data);
         }
 
+        EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("Save"))
         {
             MovementStateMachineData.Save(tar);
         }
+        if (GUILayout.Button("Reload"))
+        {
+            tar.ReloadFromData();
+        }
+        EditorGUILayout.EndHorizontal();
     }
 }

@@ -86,10 +86,12 @@
     <Compile Include="Assets\Scripts\Player\Player.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCollisionHandler.cs" />
     <Compile Include="Assets\Scripts\Player\PlayerCursorControls.cs" />
+    <Compile Include="Assets\Scripts\Utility\BucketedEventCaller.cs" />
     <Compile Include="Assets\Scripts\Utility\TransformExtensions.cs" />
     <Compile Include="Assets\Scripts\Utility\TransformInformation.cs" />
     <Compile Include="Assets\Scripts\Utility\TransformLocalInfo.cs" />
     <Compile Include="Assets\Scripts\Utility\VectorExtensions.cs" />
+    <Compile Include="Assets\Scripts\World\WorldManager.cs" />
     <None Include="Assets\Scripts\Player\Movement\StateMachine\TODO.txt" />
     <Reference Include="Unity.RenderPipeline.Universal.ShaderLibrary">
       <HintPath>D:/unity/I-Am-Proto/IAM/Library/ScriptAssemblies/Unity.RenderPipeline.Universal.ShaderLibrary.dll</HintPath>

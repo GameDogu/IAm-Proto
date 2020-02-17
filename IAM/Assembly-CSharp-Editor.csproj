@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Assets\Scripts\Player\Movement\Editor\MovementStateMachineComponentEditor\MovementStateMachineInspector.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineDataEditor\EditorDrawUtility.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineDataEditor\MovementStateMachineDataEditor.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\EditorStateNode.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\EditorTransition.cs" />

@@ -43,7 +43,6 @@ public class EditorTransition : IEditorDrawable
         causeFoldOut = false;
     }
 
-
     public void DrawInEditor()
     {
         EditorGUILayout.LabelField("Transition", new GUIStyle("BoldLabel"));
@@ -131,21 +130,126 @@ public class EditorTransition : IEditorDrawable
 
     public void Draw()
     {
-        DrawTransitionLine(fromNode.Rect.center, toNode.Rect.center);
+        int transitionsBetweenNodesCount = toNode.State.CountTransitionsTo(fromNode.ID);
+        transitionsBetweenNodesCount += fromNode.State.CountTransitionsTo(toNode.ID);
 
-        if (Handles.Button(Vector2.Lerp(fromNode.Rect.center, toNode.Rect.center, 0.5f), Quaternion.identity, 4, 8, Handles.RectangleHandleCap))
+        Vector2[] drawPoints = FigureOutPoints(fromNode.Rect, toNode.Rect,
+            FigureOuttransitionPlacementNumber(transitionsBetweenNodesCount)          
+            , transitionsBetweenNodesCount);
+        DrawTransitionLine(drawPoints[0], drawPoints[1], editor.TransitionArrowSize, toNode);
+
+        if (Handles.Button(Vector2.Lerp(drawPoints[0],drawPoints[1], 0.5f), Quaternion.identity, 4, 8, Handles.RectangleHandleCap))
         {
             OnTransitionClicked();
         }
     }
 
-    public static void DrawTransitionLine(Vector2 from, Vector2 to)
+    private int FigureOuttransitionPlacementNumber(int countTnToFn)
     {
-        Handles.DrawLine(from, to);
+        //if transition towards fromNode from toNode
+        //i want the "older transition" to have placment priority towards the center
+        //so check the editors transiton index
+        if (countTnToFn > 0)
+        {
+            IReadOnlyList<Transition> transitionsToNode = toNode.State.GetTransitionsTo(fromNode.ID);
+            IReadOnlyList<Transition> transitionsFromNode = fromNode.State.GetTransitionsTo(toNode.ID, Transition);
+
+            int thisTransIdx = editor.GetTransitionIdx(this);
+            List<int> editorListIdxs = editor.GetIndicesOfTransitions(transitionsToNode);
+
+            editorListIdxs.AddRange(editor.GetIndicesOfTransitions(transitionsFromNode));
+
+            editorListIdxs.Add(thisTransIdx);
+            editorListIdxs.Sort();
+
+            return editorListIdxs.IndexOf(thisTransIdx);
+        }
+        else
+        {
+            //just the normal index of my node
+            return fromNode.State.GetTransitionIDX(Transition);
+        }
+    }
+
+    private Vector2[] FigureOutPoints(Rect center1, Rect center2,int transitionPlacementNum, int transitionCount)
+    {
+        Vector2[] points = new Vector2[2];
+
+        float mod = 1f;
+        if (transitionPlacementNum % 2 == 0)
+        {
+            mod = 1f;
+        }
+        else
+        {
+            mod = -1f;
+        }
+
+        float t = (((float)transitionPlacementNum / (float)transitionCount) * 0.5f * mod) + 0.5f;
+        float absDot = Mathf.Abs(Vector2.Dot(center1.center.normalized, center2.center.normalized));
+
+        Vector2 minPos1, maxPos1,minPos2,maxPos2;
+        if (absDot >= Mathf.Cos(45f * Mathf.Deg2Rad))
+        {
+            //use x axis to scale
+            minPos1 = new Vector2(center1.xMin, center1.center.y);
+            maxPos1 = new Vector2(center1.xMax, center1.center.y);
+
+            minPos2 = new Vector2(center2.xMin, center2.center.y);
+            maxPos2 = new Vector2(center2.xMax, center2.center.y);
+        }
+        else
+        {
+            //use y axis to sacel
+            minPos1 = new Vector2(center1.center.x, center1.yMin);
+            maxPos1 = new Vector2(center1.center.x, center1.yMax);
+
+            minPos2 = new Vector2(center2.center.x, center2.yMin);
+            maxPos2 = new Vector2(center2.center.x, center2.yMax);
+        }
+
+        points[0] = Vector2.Lerp(minPos1, maxPos1, t);
+        points[1] = Vector2.Lerp(minPos2, maxPos2, t);
+
+        return points;
+    }
+
+    public static void DrawTransitionLine(Vector2 from, Vector2 to,float arrowSize,EditorStateNode toNode = null)
+    {
+        Vector2 toPoint = to;
+        Bounds b;
+        if (toNode != null)
+        {
+            b = new Bounds(toNode.Rect.center, toNode.Rect.size);
+        }
+        else
+        {
+            b = new Bounds(to, Vector2.one * 5);
+        }
+
+        Ray r = new Ray(b.center, -(from - toPoint).normalized);
+        float dist;
+        b.IntersectRay(r, out dist);
+        toPoint = r.origin + r.direction * dist;
+
+        Vector2 lineVec = (from - toPoint);
+        Vector2 arrowDir = lineVec.normalized;
+
+        var p1 = Rotate(arrowDir, 45f);
+        var p2 = Rotate(arrowDir, -45f);
+        Handles.DrawPolyLine(from, toPoint, toPoint + p1 * arrowSize, toPoint + p2 * arrowSize, toPoint);
+    }
+
+    static Vector2 Rotate(Vector2 vec, float deg)
+    {
+        float cosRot = Mathf.Cos(deg * Mathf.Deg2Rad);
+        float sinRot = Mathf.Sin(deg * Mathf.Deg2Rad);
+        return new Vector2(cosRot * vec.x - sinRot * vec.y, sinRot * vec.x + cosRot * vec.y);
     }
 
     private void OnTransitionClicked()
     {
+        InspectTransition();
         GenericMenu men = new GenericMenu();
         men.AddItem(new GUIContent("Edit"), false, InspectTransition);
         men.AddItem(new GUIContent("Remove"), false, RemoveTransition);

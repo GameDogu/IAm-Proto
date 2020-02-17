@@ -24,7 +24,11 @@ public class EditorStateNode: IEditorDrawable
 
     Rect nodeRect;
 
+    public int TransitionCount => State.TransitionCount;
+
     public Rect Rect => nodeRect;
+
+    Bounds bounds;
 
     public Vector2 Position
     {
@@ -43,7 +47,23 @@ public class EditorStateNode: IEditorDrawable
         this.editor = editor ?? throw new ArgumentNullException(nameof(editor));
         State = state ?? throw new ArgumentNullException(nameof(state));
         nodeRect = new Rect(position, new Vector2(style.Width, style.Height));
+
+        bounds = new Bounds(Rect.center, Rect.size);
+
         this.style = style;
+    }
+
+    public bool IntersectPoint(Ray r, out Vector2 point)
+    {
+        point = Vector2.zero;
+
+        float dist;
+        if (bounds.IntersectRay(r, out dist))
+        {
+            point = r.origin + r.direction * dist;
+            return true;
+        }
+        return false;
     }
 
     public void DrawNode()
@@ -118,7 +138,7 @@ public class EditorStateNode: IEditorDrawable
 
     public void DrawInEditor()
     {
-        State.Name = EditorGUILayout.TextField("Editing:", State.Name, new GUIStyle("BoldLabel"));
+        State.Name = EditorGUILayout.TextField("Editing:", State.Name);
 
         EditorGUILayout.Space();
 

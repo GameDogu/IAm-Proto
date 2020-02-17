@@ -91,13 +91,12 @@ public class EntityEditedInfoWindow : EditorWindow
             {
                 AddGeneralMovementOption();
             }
-
-            if (GUILayout.Button("Reload"))
+            string buttonText = EntityEdited.IsLoaded ? "Reload" : "Load";
+            if (GUILayout.Button(buttonText))
             {
                 EntityEdited.ReloadFromData();
                 OnEntityReloaded?.Invoke();
             }
-
         }
     }
 
@@ -110,20 +109,17 @@ public class EntityEditedInfoWindow : EditorWindow
 
     private void AddGeneralMovementOption()
     {
-        Debug.Log(InstantiableNodeTypes.Count);
         GenericMenu men = new GenericMenu();
         for (int i = 0; i < InstantiableNodeTypes.Count; i++)
         {
             var t = InstantiableNodeTypes[i];
-            //if (!EntityEdited.GeneralMovementOptions.Exists(op => op.GetType() == t))
-            //{
+            if (!EntityEdited.GeneralMovementOptions.Any(op => op.GetType() == t))
+            {
                 men.AddItem(new GUIContent(t.Name), false, 
                 () => {
-                    var opt = EntityEdited.gameObject.AddComponent(t) as EntityMovementOption;
-                    EntityEdited.AddGeneralMovementOption(opt);
-                    Save();
+                    EntityEdited.AddGeneralMovementOption(t);
                 });
-            //}
+            }
         }
         men.ShowAsContext();
     }
@@ -132,10 +128,4 @@ public class EntityEditedInfoWindow : EditorWindow
     {
         EntityEdited.RemoveState(state);
     }
-}
-
-
-public class SaveHandler
-{
-    //TODO change saving depending on prefab or not
 }

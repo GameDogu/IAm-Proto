@@ -94,7 +94,7 @@ public class MovementStateMachineData : ScriptableObject
 
     public static bool Save(MovementStateMachine machine, out MovementStateMachineData data)
     {
-        string path = EditorUtility.OpenFolderPanel("Save Data", "", "stateMachineMovementData");
+        string path = EditorUtility.SaveFilePanelInProject("Save Data", $"StateMachine{machine.StateCount}", "asset","Create Data Object");
         if (path.Length != 0)
         {
             //Success
@@ -107,7 +107,7 @@ public class MovementStateMachineData : ScriptableObject
 
     public static bool Save(MovementStateMachine machine)
     {
-        string path = EditorUtility.OpenFolderPanel("Save Data", "", "stateMachineMovementData");
+        string path = EditorUtility.SaveFilePanelInProject("Save Data", $"StateMachine{machine.StateCount}", "asset", "Create Data Object");
         if (path.Length != 0)
         {
             //Success

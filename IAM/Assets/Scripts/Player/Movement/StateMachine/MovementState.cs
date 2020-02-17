@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -127,6 +128,24 @@ public class MovementState : State<MovementState>
         transitions.Add(transition);
     }
 
+    public int CountTransitionsTo(uint idxTo)
+    {
+        return transitions.Count(tra => tra.NextStateID == idxTo);
+    }
+
+    public IReadOnlyList<Transition> GetTransitionsTo(uint id,Transition exclude = null)
+    {
+        if (exclude == null)
+            return transitions.Where(tra => tra.NextStateID == id).ToList();
+        else
+            return transitions.Where(tra => (tra.NextStateID == id && tra != exclude)).ToList();
+    }
+
+    public int GetTransitionIDX(Transition trans)
+    {
+        return transitions.IndexOf(trans);
+    }
+
     public bool RemoveTransition(Transition transition)
     {
         return transitions.Remove(transition);
@@ -201,6 +220,5 @@ public class MovementState : State<MovementState>
             return state;
         }
     }
-
 }
 

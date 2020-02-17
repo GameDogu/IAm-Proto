@@ -31,6 +31,16 @@ public class MovementStateMachineEditor : EditorWindow
         }
     }
 
+    public float TransitionArrowSize
+    {
+        get
+        {
+            if (settings != null)
+                return 15f;
+            return settings.ArrowSize;
+        }
+    }
+
     bool changed;
 
     List<EditorStateNode> nodes;
@@ -147,6 +157,13 @@ public class MovementStateMachineEditor : EditorWindow
             return;
         if (!StateMachine.IsLoaded)
             StateMachine.LoadFromData();
+
+        if (StateMachine.StateCount == 0 && StateMachine.IsLoaded)
+        {
+            //quick fix maybe load failed?
+            StateMachine.ReloadFromData();
+        }
+
         CreateNewNodes();
         CreateNewTransitions();
 
@@ -188,6 +205,23 @@ public class MovementStateMachineEditor : EditorWindow
         float wR = (width * .5f) - (nodeWidth * .5f);
         float hR = (height * .5f) - (nodeHeight * .5f);
         return new Vector2(Mathf.Cos(rad)*wR, Mathf.Sin(rad)*hR) + new Vector2(wR,hR);
+    }
+
+    public int GetTransitionIdx(EditorTransition editorTransition)
+    {
+        return Transitions.IndexOf(editorTransition);
+    }
+
+    public List<int> GetIndicesOfTransitions(IReadOnlyList<Transition> transitions)
+    {
+        List<int> idxList = new List<int>();
+
+        for (int i = 0; i < transitions.Count; i++)
+        {
+            idxList.Add(Transitions.FindIndex(tran => tran.Transition == transitions[i]));
+        }
+
+        return idxList;
     }
 
     public void OnGUI()
@@ -349,7 +383,12 @@ public class MovementStateMachineEditor : EditorWindow
         //TODO
         if (GUILayout.Button("Save"))
         {
-            MovementStateMachineData.Save(StateMachine);
+            MovementStateMachineData data = null;
+            MovementStateMachineData.Save(StateMachine,out data);
+            if (data != null)
+            {
+                StateMachine.MovementStateMachineDataAssetPath = AssetDatabase.GetAssetPath(data);
+            }
         }
     }
 
@@ -452,7 +491,7 @@ public class TransitionCreationHelper
     {
         if (from != null)
         {
-            EditorTransition.DrawTransitionLine(from.Rect.center, mousePos);
+            EditorTransition.DrawTransitionLine(from.Rect.center, mousePos,editor.TransitionArrowSize);
         }
     }
 

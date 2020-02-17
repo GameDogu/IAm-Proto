@@ -18,7 +18,7 @@ public class EntityPlanarMovement : DualLoopMovementOption
 
     bool OnGround => player.CollisionHandler.OnGround;
 
-    public override string Name => "Basic Movement";
+    public override string Name => "Planar Movement";
 
     PlanarMovementTransitionRequest movementRequest = new PlanarMovementTransitionRequest();
    

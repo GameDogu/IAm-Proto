@@ -7,8 +7,8 @@ using System;
 [CustomEditor(typeof(MovementStateMachineData))]
 public class MovementStateMachineDataEditor : Editor
 {
-    bool generaldataFoldOut;
-    bool statesFoldOut;
+    bool generaldataFoldOut = true;
+    bool statesFoldOut = true;
 
     Vector2 allowedMovementsScrollPosition;
     Vector2 transitionsScrollPosition;
@@ -27,7 +27,7 @@ public class MovementStateMachineDataEditor : Editor
     {
         if (data.States == null)
             return;
-        statesFoldOut = EditorGUILayout.Foldout(statesFoldOut, "States:", new GUIStyle("BoldLabel"));
+        statesFoldOut = EditorGUILayout.Foldout(statesFoldOut, "States:");
         if (statesFoldOut)
         {
             for (int i = 0; i < data.States.Count; i++)
@@ -46,18 +46,32 @@ public class MovementStateMachineDataEditor : Editor
         EditorGUILayout.EndHorizontal();
 
         GUIContent content = GetIconBool(st.IsInitial);
-        content.text = "Is Initial State:";
 
-        EditorGUILayout.LabelField(content);//is initial
+        EditorGUILayout.BeginHorizontal();
+        EditorGUILayout.LabelField("Is Initial State:");//is initial
+        EditorGUILayout.LabelField(content);
+        EditorGUILayout.EndHorizontal();
 
-        DisplayList(st.AllowedMovements, new GUIContent("State Allowed Movements:"),          mov => EditorGUILayout.LabelField(mov), new GUIStyle("BoldLabel"),ref allowedMovementsScrollPosition);        
+        DisplayList(st.AllowedMovements, new GUIContent("State Allowed Movements:"),          DrawAllowedMovement,new GUIStyle("Label"),ref allowedMovementsScrollPosition);
 
-        DisplayList(st.DataTransitions, new GUIContent("Transitions:"),DrawTransition,
-            new GUIStyle("BoldLabel"),ref transitionsScrollPosition);
+        if (st.DataTransitions.Count > 0)
+        {
+            DisplayList(st.DataTransitions, new GUIContent("Transitions:"),DrawTransition,
+            new GUIStyle("Label"),ref transitionsScrollPosition);
+        }
+    }
+
+    void DrawAllowedMovement(string st)
+    {
+        EditorGUIDrawUtility.DrawLine();
+        EditorGUILayout.LabelField(st);
+        EditorGUIDrawUtility.DrawLine();
+        EditorGUILayout.Space();
     }
 
     void DrawTransition(Transition.Data tr)
     {
+        EditorGUIDrawUtility.DrawLine();
         var transitionRequest = TransitionRequest.Factory.BuildRequest(tr.ReqeustType);
 
         var info = transitionRequest.GetInfo();
@@ -80,6 +94,7 @@ public class MovementStateMachineDataEditor : Editor
             EditorGUILayout.LabelField("Transitioning On:", tr.ReqeustType);
         }
         EditorGUILayout.LabelField("Next State ID: ", $"{tr.NextState}");
+        EditorGUIDrawUtility.DrawLine();
     }
 
     void DisplayList<T>(IReadOnlyList<T> list, GUIContent header, Action<T>drawContentFunc, GUIStyle headerStyle, ref Vector2 scrollVec)
@@ -131,6 +146,7 @@ public class MovementStateMachineDataEditor : Editor
             for (int i = 0; i < data.GeneralOptionsData.Count; i++)
             {
                 EditorGUILayout.LabelField(data.GeneralOptionsData[i]);
+                EditorGUIDrawUtility.DrawLine();
             }
             EditorGUI.indentLevel -= 1;
         }

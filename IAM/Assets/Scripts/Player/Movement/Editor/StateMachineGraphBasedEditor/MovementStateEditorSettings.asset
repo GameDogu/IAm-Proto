@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DefaultSize: {x: 1920, y: 1080}
   NodeStyle:
-    Width: 100
-    Height: 50
+    Width: 200
+    Height: 100
     style:
       m_Name: 
       m_Normal:

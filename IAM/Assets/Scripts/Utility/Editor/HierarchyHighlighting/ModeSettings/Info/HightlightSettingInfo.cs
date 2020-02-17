@@ -68,7 +68,15 @@ public class HighlightSettingInfo
         Color tC = objIsSelected ? Color.white : textColor;
         var content = GetContent(obj);
         Rect labelRect = new Rect(inSelectionRect);
-        labelRect.x = content.image.width - 2 + (14 * GetParentCount(obj));
+
+        //magic numbers don't touch
+        int parentCount = GetParentCount(obj);
+        float mul = 0.25f * Mathf.Pow(0.25f, parentCount);
+        labelRect.x += ((content.image.width - 2)*mul) + (14 * parentCount);
+        if (parentCount == 0)
+        {
+            labelRect.x += 3;
+        }
         labelRect.y += 1;
 
         EditorGUI.LabelField(labelRect, obj.name, new GUIStyle()

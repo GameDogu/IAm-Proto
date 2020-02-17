@@ -19,7 +19,7 @@ public class MovementStateMachine : MonoBehaviour
 
     public Player Player => player;
 
-    [HideInInspector]List<EntityMovementOption> generalMovementOptions = null;
+    [HideInInspector]List<EntityMovementOption> generalMovementOptions = new List<EntityMovementOption>();
 
     public IReadOnlyList<EntityMovementOption> GeneralMovementOptions => generalMovementOptions;
 
@@ -31,7 +31,7 @@ public class MovementStateMachine : MonoBehaviour
 
     public int StateCount => movementStates.Count;
 
-    string movementStateMachineDataAssetPath;
+    [SerializeField]string movementStateMachineDataAssetPath;
     [HideInInspector] public string MovementStateMachineDataAssetPath
     {
         get { return movementStateMachineDataAssetPath; }
@@ -152,6 +152,21 @@ public class MovementStateMachine : MonoBehaviour
 
     }
 
+    public void AddGeneralMovementOption(Type t)
+    {
+        if (!t.IsSubclassOf(typeof(EntityMovementOption)))
+            return;
+        if (gameObject.GetComponent(t) == null)
+        {
+            //add it
+            AddGeneralMovementOption(gameObject.AddComponent(t) as EntityMovementOption);
+        }
+        else
+        {
+            AddGeneralMovementOption(gameObject.GetComponent(t) as EntityMovementOption);
+        }
+    }
+
     public void RemoveGeneralMovementOption(EntityMovementOption opt)
     {
         int idx = generalMovementOptions.IndexOf(opt);
@@ -249,7 +264,6 @@ public class MovementStateMachine : MonoBehaviour
         idMappedMovementStates.Clear();
         isMapped = false;
     }
-
 
     #endregion
 
@@ -371,8 +385,10 @@ public class MovementStateMachine : MonoBehaviour
         movementStates.Clear();
         CurrentState = null;
         ClearIdMapping();
-
         CurrentState = Data.InitializeStateMachine(this);
+
+        idGen = movementStates.Max(state => state.ID)+1;
+
         isLoadedFromData = true;
     }
 
