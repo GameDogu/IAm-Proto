@@ -9,6 +9,13 @@ public class MovementStateMachineEditorSettings : ScriptableObject
     public NodeStyle NodeStyle;
     public float ArrowSize = 15f;
 
+    public float TransitionOutPointSize = 5f;
+
+    public float TransitionOutPointRadius = 0.9f;
+    public float TransitionOutPointRadiusSelected = 1.25f;
+
+    public Color TransitionColor = Color.black;
+
     private void Awake()
     {
        NodeStyle = NodeStyle.Default();

@@ -102,8 +102,8 @@ public class EntityEditedInfoWindow : EditorWindow
 
     public void Save()
     {
-        EditorUtility.SetDirty(EntityEdited.gameObject);
-        AssetDatabase.SaveAssets();
+        //EditorUtility.SetDirty(EntityEdited.gameObject);
+        //AssetDatabase.SaveAssets();
         Repaint();
     }
 

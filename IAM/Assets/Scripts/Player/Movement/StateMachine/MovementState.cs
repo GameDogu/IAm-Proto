@@ -101,18 +101,9 @@ public class MovementState : State<MovementState>
             PossibleTransitionRequestTypesAttribute att = Attribute.GetCustomAttribute(option.GetType(), typeof(PossibleTransitionRequestTypesAttribute)) as PossibleTransitionRequestTypesAttribute;
             if (att != null)
             {
-                for (int i = transitions.Count-1; i >= 0 ; i--)
+                for (int i = 0; i < att.Types.Length; i++)
                 {
-                    var tran = transitions[i];
-
-                    for (int j = 0; j < att.Types.Length; j++)
-                    {
-                        var type = TransitionRequest.Factory.BuildRequest(att.Types[j]);
-                        if (tran.Type.IsSameRequest(type))
-                        {
-                            transitions.RemoveAt(i);
-                        }
-                    }
+                    var type = TransitionRequest.Factory.BuildRequest(att.Types[i]);
                 }
             }
         }
@@ -149,6 +140,19 @@ public class MovementState : State<MovementState>
     public bool RemoveTransition(Transition transition)
     {
         return transitions.Remove(transition);
+    }
+
+    public bool RemoveTransition(TransitionRequest type)
+    {
+        for (int i = transitions.Count-1; i >= 0; i--)
+        {
+            if (transitions[i].Type.IsSameRequest(type))
+            {
+                transitions.RemoveAt(i);
+                return true;
+            }
+        }
+        return false;
     }
 
     internal void Print(ILogger l)

@@ -12,21 +12,22 @@ public class EditorTransition : IEditorDrawable
     MovementStateMachineEditor editor;
     public Transition Transition { get; protected set; }
 
-    EditorStateNode fromNode;
+    TransitionOutPoint fromNodeOutPoint;
     EditorStateNode toNode;
 
     bool causeFoldOut;
 
-    public EditorTransition(EditorStateNode fromNode, EditorStateNode toNode,MovementStateMachineEditor editor)
+    public EditorTransition(TransitionOutPoint fromNodeOutPoint, EditorStateNode toNode,MovementStateMachineEditor editor)
     {
         this.editor = editor ?? throw new ArgumentNullException(nameof(editor));
-        this.fromNode = fromNode ?? throw new ArgumentNullException(nameof(fromNode));
+        this.fromNodeOutPoint = fromNodeOutPoint ?? throw new ArgumentNullException(nameof(fromNodeOutPoint));
         this.toNode = toNode ?? throw new ArgumentNullException(nameof(toNode));
-        fromID = fromNode.ID;
+        fromID = fromNodeOutPoint.Node.ID;
         toID = toNode.ID;
 
-        Transition = new Transition(toID, fromNode.State);
-        fromNode.State.AddTransition(Transition);
+        Transition = new Transition(fromNodeOutPoint.Type,toID, fromNodeOutPoint.Node.State);
+        fromNodeOutPoint.Node.State.AddTransition(Transition);
+        fromNodeOutPoint.Transition = this;
         causeFoldOut = false;
     }
 
@@ -38,7 +39,8 @@ public class EditorTransition : IEditorDrawable
         fromID = t.StateBelongingToID;
         toID = t.NextStateID;
 
-        fromNode = editor.GetStateByID(fromID);
+        fromNodeOutPoint = editor.GetStateByID(fromID).GetTransitionOutPoint(t.Type);
+        fromNodeOutPoint.Transition = this;
         toNode = editor.GetStateByID(toID);
         causeFoldOut = false;
     }
@@ -78,7 +80,6 @@ public class EditorTransition : IEditorDrawable
                 Debug.LogWarning($"No Transition Request Info Attribute exists for {Transition.Type.GetType().Name}");
                 EditorGUILayout.LabelField(new GUIContent(Transition.Type.GetType().Name, "Warning: No Transition Request Info Attribute Exists"));
             }
-
         }
 
         DrawChangeActivatorButton();
@@ -86,7 +87,7 @@ public class EditorTransition : IEditorDrawable
         EditorGUILayout.BeginHorizontal();
         if (GUILayout.Button("Remove"))
         {
-            RemoveTransition();
+            RemoveTransition(true);
         }
 
         if (GUILayout.Button("Save"))
@@ -101,21 +102,22 @@ public class EditorTransition : IEditorDrawable
         if (GUILayout.Button("Change Activator"))
         {
             GenericMenu men = new GenericMenu();
-            var possRequest = editor.StateMachine.GetPossibleTransitionRequests(fromNode.State);
+            var possRequest = fromNodeOutPoint.Node.GetEmptyTransitionPoints();
 
             for (int i = 0; i < possRequest.Count; i++)
             {
-                var option = possRequest[i];
+                var outPoint = possRequest[i];
+                var option = outPoint.Type;
                 TransitionRequestInfoAttribute att = Attribute.GetCustomAttribute(option.GetType(), typeof(TransitionRequestInfoAttribute)) as TransitionRequestInfoAttribute;
                 if (att != null)
                 {
                     if (att.Type == TransitionRequestInfoAttribute.RequestType.None)
                         break;
-                    men.AddItem(new GUIContent(att.Type.ToString() +"/"+att.DisplayName,att.Type.ToString()), false, () => SetTransitionActivator(option));
+                    men.AddItem(new GUIContent(att.Type.ToString() +"/"+att.DisplayName,att.Type.ToString()), false, () => SetTransitionActivator(outPoint));
                 }
                 else
                 {
-                    men.AddItem(new GUIContent("Other/"+option.GetType().Name, "Warning: No Transition Request Info Attribute Exists"), false, () => SetTransitionActivator(option));                    
+                    men.AddItem(new GUIContent("Other/"+option.GetType().Name, "Warning: No Transition Request Info Attribute Exists"), false, () => SetTransitionActivator(outPoint));                    
                 }
                 
             }
@@ -123,98 +125,38 @@ public class EditorTransition : IEditorDrawable
         }
     }
 
-    private void SetTransitionActivator(TransitionRequest req)
+    private void SetTransitionActivator(TransitionOutPoint point)
     {
-        Transition.Type = req;
+        fromNodeOutPoint.Empty();//empty old one
+
+        fromNodeOutPoint = point;//set to new one
+        fromNodeOutPoint.Transition = this; //inform new one of transition he ha
+
+        Transition.Type = point.Type;
+        Save();
+    }
+
+    private void Save()
+    {
+        editor.Save();
     }
 
     public void Draw()
     {
-        int transitionsBetweenNodesCount = toNode.State.CountTransitionsTo(fromNode.ID);
-        transitionsBetweenNodesCount += fromNode.State.CountTransitionsTo(toNode.ID);
+        int transitionsBetweenNodesCount = toNode.State.CountTransitionsTo(fromNodeOutPoint.Node.ID);
+        transitionsBetweenNodesCount += fromNodeOutPoint.Node.State.CountTransitionsTo(toNode.ID);
 
-        Vector2[] drawPoints = FigureOutPoints(fromNode.Rect, toNode.Rect,
-            FigureOuttransitionPlacementNumber(transitionsBetweenNodesCount)          
-            , transitionsBetweenNodesCount);
-        DrawTransitionLine(drawPoints[0], drawPoints[1], editor.TransitionArrowSize, toNode);
+        Vector2[] drawPoints = new Vector2[] { fromNodeOutPoint.Position, toNode.Rect.center };
+
+        DrawTransitionLine(drawPoints[0], drawPoints[1], editor.TransitionArrowSize, editor.TransitionColor, toNode);
 
         if (Handles.Button(Vector2.Lerp(drawPoints[0],drawPoints[1], 0.5f), Quaternion.identity, 4, 8, Handles.RectangleHandleCap))
         {
             OnTransitionClicked();
         }
     }
-
-    private int FigureOuttransitionPlacementNumber(int countTnToFn)
-    {
-        //if transition towards fromNode from toNode
-        //i want the "older transition" to have placment priority towards the center
-        //so check the editors transiton index
-        if (countTnToFn > 0)
-        {
-            IReadOnlyList<Transition> transitionsToNode = toNode.State.GetTransitionsTo(fromNode.ID);
-            IReadOnlyList<Transition> transitionsFromNode = fromNode.State.GetTransitionsTo(toNode.ID, Transition);
-
-            int thisTransIdx = editor.GetTransitionIdx(this);
-            List<int> editorListIdxs = editor.GetIndicesOfTransitions(transitionsToNode);
-
-            editorListIdxs.AddRange(editor.GetIndicesOfTransitions(transitionsFromNode));
-
-            editorListIdxs.Add(thisTransIdx);
-            editorListIdxs.Sort();
-
-            return editorListIdxs.IndexOf(thisTransIdx);
-        }
-        else
-        {
-            //just the normal index of my node
-            return fromNode.State.GetTransitionIDX(Transition);
-        }
-    }
-
-    private Vector2[] FigureOutPoints(Rect center1, Rect center2,int transitionPlacementNum, int transitionCount)
-    {
-        Vector2[] points = new Vector2[2];
-
-        float mod = 1f;
-        if (transitionPlacementNum % 2 == 0)
-        {
-            mod = 1f;
-        }
-        else
-        {
-            mod = -1f;
-        }
-
-        float t = (((float)transitionPlacementNum / (float)transitionCount) * 0.5f * mod) + 0.5f;
-        float absDot = Mathf.Abs(Vector2.Dot(center1.center.normalized, center2.center.normalized));
-
-        Vector2 minPos1, maxPos1,minPos2,maxPos2;
-        if (absDot >= Mathf.Cos(45f * Mathf.Deg2Rad))
-        {
-            //use x axis to scale
-            minPos1 = new Vector2(center1.xMin, center1.center.y);
-            maxPos1 = new Vector2(center1.xMax, center1.center.y);
-
-            minPos2 = new Vector2(center2.xMin, center2.center.y);
-            maxPos2 = new Vector2(center2.xMax, center2.center.y);
-        }
-        else
-        {
-            //use y axis to sacel
-            minPos1 = new Vector2(center1.center.x, center1.yMin);
-            maxPos1 = new Vector2(center1.center.x, center1.yMax);
-
-            minPos2 = new Vector2(center2.center.x, center2.yMin);
-            maxPos2 = new Vector2(center2.center.x, center2.yMax);
-        }
-
-        points[0] = Vector2.Lerp(minPos1, maxPos1, t);
-        points[1] = Vector2.Lerp(minPos2, maxPos2, t);
-
-        return points;
-    }
-
-    public static void DrawTransitionLine(Vector2 from, Vector2 to,float arrowSize,EditorStateNode toNode = null)
+    
+    public static void DrawTransitionLine(Vector2 from, Vector2 to,float arrowSize,Color col,EditorStateNode toNode = null)
     {
         Vector2 toPoint = to;
         Bounds b;
@@ -239,7 +181,11 @@ public class EditorTransition : IEditorDrawable
         var dirp2 = Rotate(arrowDir, -45f);
         var p1 = toPoint + dirP1 * arrowSize;
         var p2 = toPoint + dirp2 * arrowSize;
+
+        Color c = Handles.color;
+        Handles.color = col;
         Handles.DrawPolyLine(from, toPoint, p1, p2, toPoint);
+        Handles.color = c;
     }
 
     static Vector2 Rotate(Vector2 vec, float deg)
@@ -254,15 +200,27 @@ public class EditorTransition : IEditorDrawable
         InspectTransition();
         GenericMenu men = new GenericMenu();
         men.AddItem(new GUIContent("Edit"), false, InspectTransition);
-        men.AddItem(new GUIContent("Remove"), false, RemoveTransition);
+        men.AddItem(new GUIContent("Remove"), false,()=> RemoveTransition(true));
         men.ShowAsContext();
     }
 
-    private void RemoveTransition()
+    private void RemoveTransition(bool informNode)
     {
-        fromNode.State.RemoveTransition(Transition);
+        fromNodeOutPoint.Node.State.RemoveTransition(Transition);
         editor.RemoveTransition(this);
+
+        if (informNode)
+        {
+            fromNodeOutPoint.Node.OnTransitionRemoved(this);
+        }
     }
+
+
+    public void Destroy(bool informNode)
+    {
+        RemoveTransition(informNode);
+    }
+
 
     private void InspectTransition()
     {

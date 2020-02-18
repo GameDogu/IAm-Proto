@@ -35,9 +35,38 @@ public class MovementStateMachineEditor : EditorWindow
     {
         get
         {
-            if (settings != null)
+            if (settings == null)
                 return 15f;
             return settings.ArrowSize;
+        }
+    }
+
+    public float TransitionOutPointSize
+    {
+        get
+        {
+            if (settings == null)
+                return 5f;
+            return settings.TransitionOutPointSize;
+        }
+    }
+
+    public float TransitionOutPointRadiusSelected
+    {
+        get
+        {
+            if (settings == null)
+                return 1.25f;
+            return settings.TransitionOutPointRadiusSelected;
+        }
+    }
+    public float TransitionOutPointRadius
+    {
+        get
+        {
+            if (settings == null)
+                return 0.9f;
+            return settings.TransitionOutPointRadius;
         }
     }
 
@@ -89,6 +118,16 @@ public class MovementStateMachineEditor : EditorWindow
                 selectedNode = value;
                 OnNodeDeselected?.Invoke();
             }
+        }
+    }
+
+    public Color TransitionColor
+    {
+        get
+        {
+            if (settings == null)
+                return Color.black;
+            return settings.TransitionColor;
         }
     }
 
@@ -185,6 +224,11 @@ public class MovementStateMachineEditor : EditorWindow
         }
     }
 
+    public bool HasEventModifierPrioritizingEditorHandling(Event e)
+    {
+        return e.control;
+    }
+
     private void CreateNewNodes()
     {
         if (StateMachine.StateCount > 0)
@@ -197,6 +241,32 @@ public class MovementStateMachineEditor : EditorWindow
                 CreateEditorNode(StateMachine.States[i],pos);
             }
         }
+    }
+
+    internal void RemoveTransitionsForNodeOfType(EditorStateNode editorStateNode, Type[] types)
+    {
+        TransitionRequest[] requestTypes = new TransitionRequest[types.Length];
+
+        for (int i = 0; i < types.Length; i++)
+        {
+            requestTypes[i] = TransitionRequest.Factory.BuildRequest(types[i]);
+        }
+
+
+        for (int i = Transitions.Count-1; i >= 0; i--)
+        {
+            var tran = transitions[i].Transition;
+            if (tran.StateBelongingToID == editorStateNode.ID)
+            {
+                //this transition belongs to this node
+                //check if we have a type in our list same as this transition
+                if (requestTypes.Any(t => t.IsSameRequest(tran.Type)))
+                {
+                    transitions.RemoveAt(i);
+                }
+            }
+        }
+        
     }
 
     private Vector2 GetNodePosition(float degChangePerNode, float width,float height,float nodeWidth, float nodeHeight, int i,float shift= 0f)
@@ -225,8 +295,7 @@ public class MovementStateMachineEditor : EditorWindow
     }
 
     public void OnGUI()
-    {
-        
+    {     
         Draw();
 
         if (entityInfoEditor.HasEntity)
@@ -258,9 +327,15 @@ public class MovementStateMachineEditor : EditorWindow
             case EventType.MouseDrag:
                 if (e.button == 0)
                 {
-                    Drag(e.delta);
+                    if (e.control && SelectedNode != null)
+                    {
+                        HandleNodeLayoutRotation(e);
+                    }
+                    else
+                        Drag(e.delta);
                     return true;
                 }
+                
                 return false;
             default:
                 return false;
@@ -280,6 +355,12 @@ public class MovementStateMachineEditor : EditorWindow
     {
         if (e.button == 0)
         {
+            if (e.control && SelectedNode != null)
+            {
+                HandleNodeLayoutRotation(e);
+                return;
+            }
+
             SelectedNode = null;
             if (transitionCreationHelper.IsMakingTransition)
                 transitionCreationHelper.Reset();
@@ -288,6 +369,12 @@ public class MovementStateMachineEditor : EditorWindow
         {
             HandleRightClick(e);
         }
+    }
+
+    private void HandleNodeLayoutRotation(Event e)
+    {
+        SelectedNode.RotateLayout(e.mousePosition,e.type==EventType.MouseDown?-1:1);
+        e.Use();
     }
 
     private void HandleRightClick(Event e)
@@ -316,6 +403,7 @@ public class MovementStateMachineEditor : EditorWindow
     public void Save()
     {
         entityInfoEditor.Save();
+        Repaint();
     }
 
     void CreateNewState(Vector2 pos)
@@ -347,9 +435,14 @@ public class MovementStateMachineEditor : EditorWindow
         else
             nodeMenu.AddItem(new GUIContent("Mark As Initial"), false, () => { obj.SetInitialState(true); InformOfIntialMark(obj.State); });
 
-        nodeMenu.AddItem(new GUIContent("Create Transition"), false, () => transitionCreationHelper.OnNodeClicked(obj));
         nodeMenu.AddItem(new GUIContent("Destroy"), false, () => obj.Destroy());
         nodeMenu.ShowAsContext();
+    }
+
+    public void OnTransitionOutPointClicked(TransitionOutPoint outpoint)
+    {
+        transitionCreationHelper.OnTransitionOutPointClicked(outpoint);
+        //TODO
     }
 
     public void InformOfIntialMark(MovementState state)
@@ -439,17 +532,19 @@ public class MovementStateMachineEditor : EditorWindow
         }
     }
 
-    public void SetNodeSelected(EditorStateNode node)
+    public bool SetNodeSelected(EditorStateNode node)
     {
         if (transitionCreationHelper.IsMakingTransition)
         {
             transitionCreationHelper.OnNodeClicked(node);
+            return false;
         }
         else
             SelectedNode = node;
+        return true;
     }
 
-    internal void CreateTransition(EditorStateNode from, EditorStateNode to)
+    internal void CreateTransition(TransitionOutPoint from, EditorStateNode to)
     {
         var trans = new EditorTransition(from,to,this);
         Transitions.Add(trans);
@@ -466,7 +561,7 @@ public class TransitionCreationHelper
 {
     MovementStateMachineEditor editor;
 
-    EditorStateNode from;
+    TransitionOutPoint from;
     EditorStateNode to;
 
     public bool IsMakingTransition => from != null;
@@ -478,31 +573,37 @@ public class TransitionCreationHelper
 
     public void OnNodeClicked(EditorStateNode n)
     {
-        if (from == null)
-            from = n;
-        else
-        {
-            to = n;
-            FinishTransition();
-        }
+        to = n;
+        TryFinishTransition();
     }
 
-    internal void Draw(Vector2 mousePos)
+    public void OnTransitionOutPointClicked(TransitionOutPoint pnt)
+    {
+        if (pnt.HasTransition)
+            return;
+        from = pnt;
+    }
+
+    public void Draw(Vector2 mousePos)
     {
         if (from != null)
         {
-            EditorTransition.DrawTransitionLine(from.Rect.center, mousePos,editor.TransitionArrowSize);
+            EditorTransition.DrawTransitionLine(from.Position, mousePos,editor.TransitionArrowSize,editor.TransitionColor);
         }
     }
 
     public void Reset()
     {
-        from = to = null;
+        from = null;
+        to = null;
     }
 
-    private void FinishTransition()
+    private void TryFinishTransition()
     {
-        editor.CreateTransition(from, to);
+        if (from != null && !from.HasTransition)
+        {
+            editor.CreateTransition(from, to);
+        }
         Reset();
     }
 

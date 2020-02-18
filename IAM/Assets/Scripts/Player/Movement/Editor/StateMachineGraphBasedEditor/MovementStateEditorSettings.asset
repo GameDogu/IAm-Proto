@@ -14,8 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   DefaultSize: {x: 1920, y: 1080}
   NodeStyle:
-    Width: 200
-    Height: 100
+    Width: 100
+    Height: 50
     style:
       m_Name: 
       m_Normal:
@@ -71,8 +71,8 @@ MonoBehaviour:
         m_Right: 0
         m_Top: 0
         m_Bottom: 0
-      m_Font: {fileID: 0}
-      m_FontSize: 0
+      m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+      m_FontSize: 12
       m_FontStyle: 0
       m_Alignment: 4
       m_WordWrap: 0
@@ -139,8 +139,8 @@ MonoBehaviour:
         m_Right: 0
         m_Top: 0
         m_Bottom: 0
-      m_Font: {fileID: 0}
-      m_FontSize: 0
+      m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+      m_FontSize: 12
       m_FontStyle: 0
       m_Alignment: 4
       m_WordWrap: 0
@@ -207,8 +207,8 @@ MonoBehaviour:
         m_Right: 0
         m_Top: 0
         m_Bottom: 0
-      m_Font: {fileID: 0}
-      m_FontSize: 0
+      m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+      m_FontSize: 12
       m_FontStyle: 0
       m_Alignment: 4
       m_WordWrap: 0
@@ -275,8 +275,8 @@ MonoBehaviour:
         m_Right: 0
         m_Top: 0
         m_Bottom: 0
-      m_Font: {fileID: 0}
-      m_FontSize: 0
+      m_Font: {fileID: 10102, guid: 0000000000000000e000000000000000, type: 0}
+      m_FontSize: 12
       m_FontStyle: 0
       m_Alignment: 4
       m_WordWrap: 0
@@ -288,3 +288,8 @@ MonoBehaviour:
       m_FixedHeight: 0
       m_StretchWidth: 1
       m_StretchHeight: 0
+  ArrowSize: 15
+  TransitionOutPointSize: 5
+  TransitionOutPointRadius: 0.9
+  TransitionOutPointRadiusSelected: 1.35
+  TransitionColor: {r: 0, g: 0, b: 0, a: 1}

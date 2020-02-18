@@ -15,7 +15,7 @@ public class EditorStateNode: IEditorDrawable
     public event Action<EditorStateNode> OnRightClick;
     public event Action<EditorStateNode, MovementState> OnDestroyed;
 
-    protected MovementStateMachineEditor editor;
+    public MovementStateMachineEditor Editor { get; protected set; }
     public MovementState State { get; protected set; }
 
     public uint ID => State.ID;
@@ -28,6 +28,18 @@ public class EditorStateNode: IEditorDrawable
 
     public Rect Rect => nodeRect;
 
+    public float Width
+    {
+        get => nodeRect.width;
+        set => nodeRect.width = value;
+    }
+
+    public float Height
+    {
+        get => nodeRect.height;
+        set => nodeRect.height = value;
+    }
+
     Bounds bounds;
 
     public Vector2 Position
@@ -39,18 +51,21 @@ public class EditorStateNode: IEditorDrawable
         }
     }
 
+
     NodeStyle style;
-    bool isSelected;
+    public bool IsSelected { get; protected set; }
+
+    NodeLayout nodeLayout;
 
     public EditorStateNode(MovementStateMachineEditor editor, MovementState state, Vector2 position, NodeStyle style)
     {
-        this.editor = editor ?? throw new ArgumentNullException(nameof(editor));
+        this.Editor = editor ?? throw new ArgumentNullException(nameof(editor));
         State = state ?? throw new ArgumentNullException(nameof(state));
         nodeRect = new Rect(position, new Vector2(style.Width, style.Height));
 
-        bounds = new Bounds(Rect.center, Rect.size);
-
+        bounds = new Bounds(nodeRect.center, nodeRect.size);
         this.style = style;
+        nodeLayout = new NodeLayout(this);
     }
 
     public bool IntersectPoint(Ray r, out Vector2 point)
@@ -68,26 +83,42 @@ public class EditorStateNode: IEditorDrawable
 
     public void DrawNode()
     {
-        GUI.Box(nodeRect, State.Name, GetStyle());
+        var st = GetStyle();
+        FigureOutRectSize(st);
+        GUI.Box(nodeRect, State.Name, st);
+        if(IsSelected)
+            nodeLayout.Draw();
+    }
+
+    void FigureOutRectSize(GUIStyle st)
+    {
+        var potentialSize = st.CalcSize(new GUIContent(State.Name));
+        potentialSize += new Vector2(st.border.left + st.border.right, st.border.top + st.border.bottom);
+        Vector2 size = nodeRect.size;
+
+        size.x = Mathf.Max(potentialSize.x, style.Width);
+        size.y = Mathf.Max(potentialSize.y, style.Height);
+
+        nodeRect.size = size;
     }
 
     private GUIStyle GetStyle()
     {
         if (IsInitialState)
         {
-            if (isSelected)
+            if (IsSelected)
                 return style.initialStateStyleSelected;
             else
                 return style.initialStateStyle;
         }
-        else if (isSelected)
+        else if (IsSelected)
             return style.selectedStyle;
         return style.style;
     }
 
     public bool ProcessEvent(Event e)
     {
-        if (nodeRect.Contains(e.mousePosition))
+        if (nodeRect.Contains(e.mousePosition) && !Editor.HasEventModifierPrioritizingEditorHandling(e))
         {
             switch (e.type)
             {
@@ -119,6 +150,15 @@ public class EditorStateNode: IEditorDrawable
         return false;
     }
 
+    public void RotateLayout(Vector2 mousePos,int invert = 1)
+    {
+        Vector2 mouseDir = (mousePos - nodeRect.center).normalized;
+
+        float angle = invert * Vector2.SignedAngle(Vector2.right, mouseDir);
+
+        nodeLayout.Rotation = angle;
+    }
+
     public void Drag(Vector2 dragOffset)
     {
         Position += dragOffset;
@@ -126,14 +166,14 @@ public class EditorStateNode: IEditorDrawable
 
     public void SelectNode()
     {
-        isSelected = true;
+        
+        IsSelected = Editor.SetNodeSelected(this);
 
-        editor.SetNodeSelected(this);
     }
 
     public void Deselect()
     {
-        isSelected = false;
+        IsSelected = false;
     }
 
     public void DrawInEditor()
@@ -146,7 +186,7 @@ public class EditorStateNode: IEditorDrawable
         State.IsInitialState = EditorGUILayout.Toggle("Initial State", State.IsInitialState);
 
         if (State.IsInitialState && !prev)
-            editor.InformOfIntialMark(State);
+            Editor.InformOfIntialMark(State);
 
         EditorGUILayout.Space();
 
@@ -167,11 +207,11 @@ public class EditorStateNode: IEditorDrawable
         if (GUILayout.Button("Add Allowed Movement"))
         {
             GenericMenu men = new GenericMenu();
-            for (int i = 0; i < editor.StateMachine.GeneralMovementOptions.Count; i++)
+            for (int i = 0; i < Editor.StateMachine.GeneralMovementOptions.Count; i++)
             {
-                var option = editor.StateMachine.GeneralMovementOptions[i];
+                var option = Editor.StateMachine.GeneralMovementOptions[i];
                 if(!State.ContainsMovementOption(option))
-                    men.AddItem(new GUIContent(option.Name), false, () => { State.AddMovementOption(option); editor.Save(); });
+                    men.AddItem(new GUIContent(option.Name), false, () => { State.AddMovementOption(option);nodeLayout.UpdateLayout(); Editor.Save(); });
             }
             men.ShowAsContext();
         }
@@ -190,15 +230,41 @@ public class EditorStateNode: IEditorDrawable
             if (GUILayout.Button("X"))
             {
                 State.RemoveMovementOption(option);
-                editor.Save();
+                var att = Attribute.GetCustomAttribute(option.GetType(), typeof(PossibleTransitionRequestTypesAttribute)) as PossibleTransitionRequestTypesAttribute;
+                if (att != null)
+                {
+                    Editor.RemoveTransitionsForNodeOfType(this, att.Types);
+                }
+                nodeLayout.UpdateLayout();
+                Editor.Save();
             }
             EditorGUILayout.EndHorizontal();
         }
         EditorGUI.indentLevel -= 1;
     }
 
-    internal void Destroy()
+    public void Destroy()
     {
         OnDestroyed?.Invoke(this,State);
+    }
+
+    public Vector2 LocalToWindowPos(Vector2 localPosition)
+    {
+        return localPosition + Rect.center;
+    }
+
+    public void OnTransitionRemoved(EditorTransition editorTransition)
+    {
+        nodeLayout.OnTransitionRemoved(editorTransition);
+    }
+
+    public TransitionOutPoint GetTransitionOutPoint(TransitionRequest request)
+    {
+        return nodeLayout.GetTransitionOutPoint(request);
+    }
+
+    public IReadOnlyList<TransitionOutPoint> GetEmptyTransitionPoints()
+    {
+        return nodeLayout.GetEmptyTransitionOutPoints();
     }
 }

@@ -70,8 +70,10 @@
     <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\EntityEditedInfoWindow.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\MovementStateMachineEditor.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\MovementStateMachineEditorSettings.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\NodeLayout.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\NodeStyle.cs" />
     <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\StateEditorWindow.cs" />
+    <Compile Include="Assets\Scripts\Player\Movement\Editor\StateMachineGraphBasedEditor\TransitionOutPoint.cs" />
     <Compile Include="Assets\Scripts\Utility\Editor\Docker\Docker.cs" />
     <Compile Include="Assets\Scripts\Utility\Editor\ForceCompile\ForceRecompile.cs" />
     <Compile Include="Assets\Scripts\Utility\Editor\HierarchyHighlighting\HierachyHighlights.cs" />
