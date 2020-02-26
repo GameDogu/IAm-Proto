@@ -27,3 +27,20 @@ MonoBehaviour:
     - EntityWallGrab
     - EntityWallRun
     dataTransitions: []
+    requestPriorities:
+    - TypeName: OnGroundHitTransitionRequest
+      Priority: 0
+    - TypeName: OnInAirTransitionRequest
+      Priority: 1
+    - TypeName: OnHitWallTransitionRequest
+      Priority: 2
+    - TypeName: JumpTransitionRequest
+      Priority: 3
+    - TypeName: PlanarMovementTransitionRequest
+      Priority: 4
+    - TypeName: WallGrabTransitionRequest
+      Priority: 5
+    - TypeName: WallGrabReleaseTransitionRequest
+      Priority: 6
+    - TypeName: WallRunTransitionRequest
+      Priority: 7

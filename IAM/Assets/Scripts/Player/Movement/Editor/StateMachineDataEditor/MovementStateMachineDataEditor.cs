@@ -12,6 +12,7 @@ public class MovementStateMachineDataEditor : Editor
 
     Vector2 allowedMovementsScrollPosition;
     Vector2 transitionsScrollPosition;
+    Vector2 priorityMappingScrollPosition;
 
     public override void OnInspectorGUI()
     {
@@ -52,26 +53,67 @@ public class MovementStateMachineDataEditor : Editor
         EditorGUILayout.LabelField(content);
         EditorGUILayout.EndHorizontal();
 
+        DoActionXTimes(() => EditorGUIDrawUtility.DrawHorizontalLine(), 3);
         DisplayList(st.AllowedMovements, new GUIContent("State Allowed Movements:"),          DrawAllowedMovement,new GUIStyle("Label"),ref allowedMovementsScrollPosition);
+
+        if (st.RequestPriorities.Count > 0)
+        {
+            DoActionXTimes(() => EditorGUIDrawUtility.DrawHorizontalLine(), 3);
+            DisplayList(st.RequestPriorities, new GUIContent("Transition Request Priorities:"), DrawPriorityMapping, new GUIStyle("Label"), ref priorityMappingScrollPosition);
+        }
 
         if (st.DataTransitions.Count > 0)
         {
+            DoActionXTimes(() => EditorGUIDrawUtility.DrawHorizontalLine(), 3);
             DisplayList(st.DataTransitions, new GUIContent("Transitions:"),DrawTransition,
             new GUIStyle("Label"),ref transitionsScrollPosition);
         }
     }
 
+    void DrawPriorityMapping(PriorityTransitionRequest.Data data)
+    {
+        EditorGUIDrawUtility.DrawHorizontalLine();
+
+        EditorGUILayout.BeginHorizontal();
+
+        var req = TransitionRequest.Factory.BuildRequest(data.TypeName);
+
+        var att = req.GetInfo();
+        string label = data.TypeName;
+        if (att != null)
+        {
+            label = att.DisplayName;
+        }
+        EditorGUILayout.LabelField(label);
+
+        EditorGUILayout.LabelField($"Priority: {data.Priority}");
+
+        EditorGUILayout.EndHorizontal();
+
+        EditorGUIDrawUtility.DrawHorizontalLine();
+    }
+
+    void DoActionXTimes(Action ac, int count)
+    {
+        if (ac == null)
+            return;
+        for (int i = 0; i < count; i++)
+        {
+            ac();
+        }
+    }
+
     void DrawAllowedMovement(string st)
     {
-        EditorGUIDrawUtility.DrawLine();
+        EditorGUIDrawUtility.DrawHorizontalLine();
         EditorGUILayout.LabelField(st);
-        EditorGUIDrawUtility.DrawLine();
+        EditorGUIDrawUtility.DrawHorizontalLine();
         EditorGUILayout.Space();
     }
 
     void DrawTransition(Transition.Data tr)
     {
-        EditorGUIDrawUtility.DrawLine();
+        EditorGUIDrawUtility.DrawHorizontalLine();
         var transitionRequest = TransitionRequest.Factory.BuildRequest(tr.ReqeustType);
 
         var info = transitionRequest.GetInfo();
@@ -94,7 +136,7 @@ public class MovementStateMachineDataEditor : Editor
             EditorGUILayout.LabelField("Transitioning On:", tr.ReqeustType);
         }
         EditorGUILayout.LabelField("Next State ID: ", $"{tr.NextState}");
-        EditorGUIDrawUtility.DrawLine();
+        EditorGUIDrawUtility.DrawHorizontalLine();
     }
 
     void DisplayList<T>(IReadOnlyList<T> list, GUIContent header, Action<T>drawContentFunc, GUIStyle headerStyle, ref Vector2 scrollVec)
@@ -146,7 +188,7 @@ public class MovementStateMachineDataEditor : Editor
             for (int i = 0; i < data.GeneralOptionsData.Count; i++)
             {
                 EditorGUILayout.LabelField(data.GeneralOptionsData[i]);
-                EditorGUIDrawUtility.DrawLine();
+                EditorGUIDrawUtility.DrawHorizontalLine();
             }
             EditorGUI.indentLevel -= 1;
         }

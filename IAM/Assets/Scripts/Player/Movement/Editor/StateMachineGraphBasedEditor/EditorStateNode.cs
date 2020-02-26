@@ -51,6 +51,7 @@ public class EditorStateNode: IEditorDrawable
         }
     }
 
+    Vector2 editorScrollRef;
 
     NodeStyle style;
     public bool IsSelected { get; protected set; }
@@ -66,6 +67,11 @@ public class EditorStateNode: IEditorDrawable
         bounds = new Bounds(nodeRect.center, nodeRect.size);
         this.style = style;
         nodeLayout = new NodeLayout(this);
+
+        if (state.MovementOptions.Count > 0 && state.PrioritizedTransitionRequestList.Count == 0)
+        {
+            state.RemapTransitionRequestPriority();
+        }
     }
 
     public bool IntersectPoint(Ray r, out Vector2 point)
@@ -178,6 +184,7 @@ public class EditorStateNode: IEditorDrawable
 
     public void DrawInEditor()
     {
+        editorScrollRef = EditorGUILayout.BeginScrollView(editorScrollRef);
         State.Name = EditorGUILayout.TextField("Editing:", State.Name);
 
         EditorGUILayout.Space();
@@ -195,6 +202,64 @@ public class EditorStateNode: IEditorDrawable
         EditorGUILayout.Space();
 
         DisplayAddOptionButton();
+
+        EditorGUILayout.Space();
+
+        DrawRequestPriorityMapping();
+        EditorGUILayout.EndScrollView();
+    }
+
+    private void DrawRequestPriorityMapping()
+    {
+        EditorGUILayout.LabelField("Request Priority Mapping", new GUIStyle("BoldLabel"));
+        var st = new GUIStyle("MiniButton");
+        st.alignment = TextAnchor.MiddleCenter;
+        st.fontStyle = FontStyle.Bold;
+        st.fontSize = 8;
+
+        var pList = State.PrioritizedTransitionRequestList;
+
+        for (int i = 0; i < pList.Count; i++)
+        {
+            EditorGUIDrawUtility.DrawHorizontalLine();
+            EditorGUILayout.BeginHorizontal();
+            var request = pList[i].Type;
+            var prevRequest = i > 0 ? pList[i - 1].Type : null;
+            var nextRequest = i < pList.Count - 1 ? pList[i + 1].Type : null;
+
+            var info = request.GetInfo();
+
+            string displayName = info != null ? info.DisplayName : request.GetType().Name;
+            EditorGUILayout.PrefixLabel($"{pList[i].Priority}", new GUIStyle("BoldLabel"));
+            EditorGUILayout.LabelField(displayName);
+            if (prevRequest != null)
+            {
+                if (GUILayout.Button("/\\", st))
+                {
+                    UpdatePriority(request, prevRequest);
+                }
+            }
+            if (nextRequest != null)
+            {
+                if (GUILayout.Button("\\/", st))
+                {
+                    UpdatePriority(request, nextRequest);
+                }
+            }
+            EditorGUILayout.EndHorizontal();
+            EditorGUIDrawUtility.DrawHorizontalLine();
+        }
+
+        if (GUILayout.Button("Reset To Basic Mapping"))
+        {
+            State.RemapTransitionRequestPriority();
+        }
+
+    }
+
+    void UpdatePriority(TransitionRequest req1,TransitionRequest req2)
+    {
+        State.SwapPriority(req1, req2);
     }
 
     public void SetInitialState(bool value)
@@ -221,8 +286,11 @@ public class EditorStateNode: IEditorDrawable
     {
         EditorGUILayout.LabelField("Currently Allowed Options:");
         EditorGUI.indentLevel += 1;
+
+        EditorGUIDrawUtility.DrawHorizontalLine();
         for (int i = State.MovementOptions.Count - 1; i >= 0; i--)
         {
+            EditorGUIDrawUtility.DrawHorizontalLine();
             var option = State.MovementOptions[i];
             EditorGUILayout.BeginHorizontal();
 
@@ -239,7 +307,10 @@ public class EditorStateNode: IEditorDrawable
                 Editor.Save();
             }
             EditorGUILayout.EndHorizontal();
+            EditorGUIDrawUtility.DrawHorizontalLine();
         }
+
+        EditorGUIDrawUtility.DrawHorizontalLine();
         EditorGUI.indentLevel -= 1;
     }
 

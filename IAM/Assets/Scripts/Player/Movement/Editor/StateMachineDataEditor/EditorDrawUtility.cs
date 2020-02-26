@@ -21,7 +21,7 @@ public static class EditorGUIDrawUtility
         lineStyle.padding.top = lineStyle.padding.bottom = 1;
     }
 
-    public static void DrawLine(float height = 1f)
+    public static void DrawHorizontalLine(float height = 1f)
     {
         GUILayout.Box(GUIContent.none, LineStyle, GUILayout.ExpandWidth(true), GUILayout.Height(height));
     }
