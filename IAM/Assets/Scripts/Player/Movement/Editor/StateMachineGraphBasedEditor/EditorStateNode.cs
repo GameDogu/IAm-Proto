@@ -58,6 +58,8 @@ public class EditorStateNode: IEditorDrawable
 
     NodeLayout nodeLayout;
 
+    bool viewPriorityMapping;
+
     public EditorStateNode(MovementStateMachineEditor editor, MovementState state, Vector2 position, NodeStyle style)
     {
         this.Editor = editor ?? throw new ArgumentNullException(nameof(editor));
@@ -205,13 +207,17 @@ public class EditorStateNode: IEditorDrawable
 
         EditorGUILayout.Space();
 
-        DrawRequestPriorityMapping();
+        string mod = viewPriorityMapping ? "" : "(Hidden)";
+        viewPriorityMapping = EditorGUILayout.Foldout(viewPriorityMapping, $"Request Priority Mapping {mod}");
+
+        if(viewPriorityMapping)
+            DrawRequestPriorityMapping();
+
         EditorGUILayout.EndScrollView();
     }
 
     private void DrawRequestPriorityMapping()
     {
-        EditorGUILayout.LabelField("Request Priority Mapping", new GUIStyle("BoldLabel"));
         var st = new GUIStyle("MiniButton");
         st.alignment = TextAnchor.MiddleCenter;
         st.fontStyle = FontStyle.Bold;

@@ -1,7 +1,1 @@
-MovementState
-	add transitions -> from state to state
-	 happend when event of movement option is called
-
-Add State machine to movement handler
-	where states can be created and reference the movment options in general that the handler has
-	Add editor for state transition creation
+Done

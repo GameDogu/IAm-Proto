@@ -139,7 +139,16 @@ public class MovementState : State<MovementState>
     /// <param name="requestPriorities">the data to build it from</param>
     void InitializeRequestPriorites(List<PriorityTransitionRequest.Data> requestPriorities)
     {
-        Debug.Log("TODO");
+        minPriorityValue = 0;
+        requestPriorityMapping.Clear();
+
+        for (int i = 0; i < requestPriorities.Count; i++)
+        {
+            var data = requestPriorities[i];
+
+            AddPriorityRequest(TransitionRequest.Factory.BuildRequest(data.TypeName), data.Priority);
+        }
+
     }
 
     /// <summary>
