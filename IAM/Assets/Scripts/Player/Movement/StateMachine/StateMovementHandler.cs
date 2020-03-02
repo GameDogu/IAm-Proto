@@ -27,7 +27,7 @@ public class StateMovementHandler
     }
 
     /// <summary>
-    /// the player the state machine beliongs to
+    /// the player the state machine belongs to
     /// </summary>
     [SerializeField] Player player = null;
     /// <summary>
