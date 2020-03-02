@@ -28,6 +28,7 @@ public class CityGenerator : MonoBehaviour
     {
         if (draw)
         {
+            var poly = new Polygon(deformedPoints);
             Gizmos.color = Color.black;
             for (int i = 0; i < deformedPoints.Length; i++)
             {
@@ -36,6 +37,8 @@ public class CityGenerator : MonoBehaviour
 
                 Gizmos.DrawLine(transform.TransformPoint(v0.XValY(1f)), transform.TransformPoint(v1.XValY(1f)));
             }
+
+            Gizmos.DrawSphere(transform.TransformPoint(new Vector3(poly.Centroid.x,1f,poly.Centroid.y)), .035f);
 
             Gizmos.color = c;
 

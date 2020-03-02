@@ -1,10 +1,9 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using Unity.Mathematics;
 using Priority_Queue;
+using System.Runtime.CompilerServices;
 
 /// <summary>
 /// some basic geometry utitltiy
@@ -51,11 +50,85 @@ namespace GeoUtil
         /// <param name="p">the edge pair to check</param>
         /// <returns>true if intersect</returns>
         //https://algs4.cs.princeton.edu/91primitives/
-        public static bool Intersects(EdgePair p)
+        public static bool Intersects<T>(EdgePair<T> p) where T : IPolygonEdge
         {
-            if (CalculateCCW(p.e0.v0, p.e0.v1, p.e1.v0) * CalculateCCW(p.e0.v0, p.e0.v1, p.e1.v1) > 0) return false;
-            if (CalculateCCW(p.e1.v0, p.e1.v1, p.e0.v0) * CalculateCCW(p.e1.v0, p.e1.v1, p.e0.v1) > 0) return false;
+            return Intersects(p.e0, p.e1);
+        }
+
+        /// <summary>
+        /// check if line containers intersects
+        /// </summary>
+        /// <param name="p">the edge pair to check</param>
+        /// <returns>true if intersect</returns>
+        //https://algs4.cs.princeton.edu/91primitives/
+        public static bool Intersects<T>(T l0, T l1) where T : ILineSegmentContainer
+        {
+            return Intersects(l0.Line, l1.Line);
+        }
+
+        /// <summary>
+        /// check if edge pair intersects
+        /// </summary>
+        /// <param name="p">the edge pair to check</param>
+        /// <returns>true if intersect</returns>
+        //https://algs4.cs.princeton.edu/91primitives/
+        public static bool Intersects(LineSegment l0, LineSegment l1) 
+        {
+            if (CalculateCCW(l0.SPoint, l0.EPoint, l1.SPoint) * CalculateCCW(l0.SPoint, l0.EPoint, l1.EPoint) > 0) return false;
+            if (CalculateCCW(l1.SPoint, l1.EPoint, l0.SPoint) * CalculateCCW(l1.SPoint, l1.EPoint, l0.EPoint) > 0) return false;
             return true;
+        }
+
+        /// <summary>
+        /// returns the instersection point of to line segments
+        /// </summary>
+        /// <param name="l0">first line segment</param>
+        /// <param name="l1">second line segment</param>
+        /// <returns>the intersection point</returns>
+        public static float2 IntersectUnknownIntersection(LineSegment l0, LineSegment l1)
+        {
+            if (Intersects(l0, l1))
+            {
+                var res = IntersectHomogenouseCoords(l0, l1);
+                return res.xy / res.z;
+            }
+            throw new DivideByZeroException();
+        }
+
+        /// <summary>
+        /// returns the instersection point of to line segments
+        /// </summary>
+        /// <param name="l0">first line segment</param>
+        /// <param name="l1">second line segment</param>
+        /// <returns>the intersection point</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float2 IntersectKnownIntersection(LineSegment l0, LineSegment l1)
+        {
+            var res = IntersectHomogenouseCoords(l0, l1);
+            return res.xy / res.z;
+        }
+
+        /// <summary>
+        /// calculates lineintersection in homogneous coords from given line segments
+        /// </summary>
+        /// <param name="l0">first line segment</param>
+        /// <param name="l1">second line segment</param>
+        /// <returns>intersection point in hom coords</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float3 IntersectHomogenouseCoords(LineSegment l0, LineSegment l1)
+        {
+            return math.cross(l0.Line, l1.Line);
+        }
+
+        /// <summary>
+        /// calculates the homogenoues cordinates line for a line segment
+        /// </summary>
+        /// <param name="l">the line segments</param>
+        /// <returns>the line coords in porjective space</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static float3 CalcHomogeneousLine(LineSegment l)
+        {
+            return math.cross(new float3(l.SPoint,1), new float3(l.EPoint,1));
         }
 
         /// <summary>
@@ -117,19 +190,19 @@ namespace GeoUtil
         public static int WindingNumberPointInPolygon(float2 p, Polygon polygon)
         {
             int windingNumber = 0;
-            foreach (var (edgeVert0, edgeVert1) in polygon)
+            foreach (Edge edge in polygon.Edges)
             {
-                if (edgeVert0.y <= p.y && edgeVert1.y > p.y)
+                if (edge.SPoint.y <= p.y && edge.EPoint.y > p.y)
                 {
                     //upward crossing
-                    if (IsLeftOfLine(edgeVert0, edgeVert1, p))
+                    if (IsLeftOfLine(edge.SPoint, edge.EPoint, p))
                         windingNumber++;
 
                 }
-                else if (edgeVert1.y <= p.y)
+                else if (edge.EPoint.y <= p.y)
                 {
                     //downward crossing
-                    if (IsRightOfLine(edgeVert0, edgeVert1, p))
+                    if (IsRightOfLine(edge.SPoint, edge.EPoint, p))
                         windingNumber--;
                 }
             }
@@ -459,231 +532,4 @@ namespace GeoUtil
         }
         #endregion
     }
-
-    public enum LinePosition
-    {
-        left = 1,
-        on = 0,
-        right = -1
-    }
-
-    public static class LinePositionExtensions
-    {
-        public static int ToInt(this LinePosition p)
-        {
-            return (int)p;
-        }
-
-        public static LinePosition ToLinePosition(this int i)
-        {
-            switch (i)
-            {
-                case int _ when i > 0:
-                    return LinePosition.left;
-                case int _ when i == 0:
-                    return LinePosition.on;
-                default:
-                    return LinePosition.right;
-            }
-        }
-
-    }
-
-    public class Polygon : IEnumerable<(float2 v0, float2 v1)>
-    {
-        protected float2[] vertices;
-
-        public Bounds2D Bounds { get; protected set; }
-
-        public int VertexCount => vertices.Length;
-
-        public bool HasSelfIntersection => GeometryUtility.CheckPolygonSelfIntersection(this);
-
-        public bool IsConvex => GeometryUtility.CheckPolygonConvex(this);
-
-        public Polygon(float2[] vertices)
-        {
-            this.vertices = vertices ?? throw new ArgumentNullException(nameof(vertices));
-
-            CalculateBounds();
-        }
-
-        public Polygon(List<Vector2> vert)
-        {
-            vertices = new float2[vert.Count];
-            for (int i = 0; i < vert.Count; i++)
-            {
-                vertices[i] = new float2(vert[i].x, vert[i].y);
-            }
-            CalculateBounds();
-        }
-
-        public Polygon(Vector2[] vert)
-        {
-            vertices = new float2[vert.Length];
-            for (int i = 0; i < vert.Length; i++)
-            {
-                vertices[i] = new float2(vert[i].x, vert[i].y);
-            }
-            CalculateBounds();
-        }
-
-        protected Polygon()
-        { }
-
-        public Polygon(Polygon src)
-        {
-            this.vertices = new float2[src.VertexCount];
-            for (int i = 0; i < VertexCount; i++)
-            {
-                this.vertices[i] = src[i];
-            }
-        }
-
-        public float2 this[int i]
-        {
-            get { return vertices[i]; }
-        }
-
-        public void CalculateBounds()
-        {
-            Bounds = GeometryUtility.CalculateBounds(this);
-        }
-
-        public IEnumerator<(float2 v0, float2 v1)> GetEnumerator()
-        {
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                var vCurrent = vertices[i];
-                var vNext = vertices[(i + 1) % vertices.Length];
-                yield return (v0: vCurrent, v1: vNext);
-            }
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.GetEnumerator();
-        }
-
-        public Mesh Triangulate()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-    public readonly struct PolygonVertexTriple
-    {
-        public readonly float2 Current;
-        public readonly int CurrentIdx;
-
-        public readonly float2 Next;
-        public readonly int NextIdx;
-
-        public readonly float2 Prev;
-        public readonly int PrevIndex;
-
-        public PolygonVertexTriple(float2 current, int currentIdx, float2 next, int nextIdx, float2 prev, int prevIndex)
-        {
-            Current = current;
-            CurrentIdx = currentIdx;
-            Next = next;
-            NextIdx = nextIdx;
-            Prev = prev;
-            PrevIndex = prevIndex;
-        }
-    }
-
-
-    public class MutablePolygon : Polygon
-    {
-        public MutablePolygon(float2[] vertices) : base(vertices)
-        {
-        }
-
-        public MutablePolygon(List<Vector2> vert) : base(vert)
-        {
-        }
-
-        public MutablePolygon(Vector2[] vert) : base(vert)
-        {
-        }
-
-        public MutablePolygon(int vertCount)
-        {
-            vertices = new float2[vertCount];
-        }
-
-        public MutablePolygon(Polygon src) : base(src) { }
-
-        public new float2 this[int i]
-        {
-            get => vertices[i];
-            set => vertices[i] = value;
-        }
-
-        public void Reverse()
-        {
-            vertices = vertices.Reverse().ToArray();
-        }
-
-        public void RemoveRange(int beginIdx, int count)
-        {
-            var vert = vertices.ToList();
-            vert.RemoveRange(beginIdx, count);
-            vertices = vert.ToArray();
-        }
-    }
-
-    public struct EdgePair
-    {
-        public (float2 v0, float2 v1) e0;
-        public (float2 v0, float2 v1) e1;
-    }
-
-    public struct Bounds2D
-    {
-        public (float min, float max) X { get; private set; }
-        public (float min, float max) Y { get; private set; }
-
-        public float2 Min => new float2(X.min, Y.min);
-
-        public float2 Max => new float2(X.max, Y.max);
-
-        public float2 Size { get; private set; }
-
-        public float2 Center { get; private set; }
-
-        public float2 Extents { get; private set; }
-
-        public Bounds2D((float min, float max) x, (float min, float max) y) : this()
-        {
-            X = x;
-            Y = y;
-            Center = new float2(Mathf.Lerp(X.min, X.max, 0.5f), Mathf.Lerp(Y.min, Y.max, 0.5f));
-
-            Size = new float2(X.max - X.min, Y.max - Y.min);
-            Extents = Size * 0.5f;
-        }
-
-        public bool Contains(float2 p)
-        {
-            return (p >= Min).ElemtAnd() && (p <= Max).ElemtAnd();
-        }
-
-    }
-
-    public static class Bool2Extension
-    {
-        public static bool ElemtAnd(this bool2 b)
-        {
-            return b.x && b.y;
-        }
-
-        public static bool ElemrOr(this bool2 b)
-        {
-            return b.x || b.y;
-        }
-    }
 }
-
-

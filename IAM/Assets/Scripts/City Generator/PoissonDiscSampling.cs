@@ -55,7 +55,7 @@ public static class PoissonDiscSampling
                 spawnPoints.RemoveAt(spawnIndex);
             }// end if candidate accepted
         }// end while
-        return DecreasePopulation( sampledPoints,popDecimation);
+        return DecreasePopulation( sampledPoints,popDecimation,prng);
     }
 
     static float GetCellSize(float r)
@@ -97,18 +97,15 @@ public static class PoissonDiscSampling
     }
 
 
-    static List<Vector2> DecreasePopulation(List<Vector2> pop, float decimationProbability)
+    static List<Vector2> DecreasePopulation(List<Vector2> pop, float decimationProbability, System.Random prng)
     {
-        System.Random prng = new System.Random((int)System.DateTime.Now.Ticks);
         //pop.RemoveAll((v) => { return Random.value < decimationProbability; });
         pop.RemoveAll((v) => { return prng.NextDouble() < decimationProbability; });
         return pop;
     }
 
-    static List<Vector3> DecreasePopulation(List<Vector3> pop, float decimationProbability)
+    static List<Vector3> DecreasePopulation(List<Vector3> pop, float decimationProbability, System.Random prng)
     {
-        System.Random prng = new System.Random((int)System.DateTime.Now.Ticks);
-        //pop.RemoveAll((v) => { return Random.value < decimationProbability; });
         pop.RemoveAll((v) => { return prng.NextDouble() < decimationProbability; });
         return pop;
     }
