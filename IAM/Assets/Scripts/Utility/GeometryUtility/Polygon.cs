@@ -12,7 +12,7 @@ using System.Text;
 /// </summary>
 namespace GeoUtil
 {
-    public class Polygon
+    public class Polygon : IPolygon
     {
         protected float2[] vertices;
 
@@ -24,9 +24,9 @@ namespace GeoUtil
 
         public VertexWinding VertexWinding { get; protected set; }
 
-        protected List<Edge> edges;
+        protected List<IPolygonEdge> edges;
         private bool edgesAreValid = false;
-        public List<Edge> Edges
+        public List<IPolygonEdge> Edges
         {
             get
             {
@@ -70,13 +70,13 @@ namespace GeoUtil
         protected Polygon()
         { }
 
-        public Polygon(Polygon src)
+        public Polygon(IPolygon src)
         {
-            CopyVertices(src.vertices);
+            CopyVertices(src);
             //CalculateBounds();
             //CalculateCentroid();
             Bounds = src.Bounds;
-            Centroid = src.Centroid;
+            Centroid = GeometryUtility.CalculateCentroid(this);
             VertexWinding = src.VertexWinding;
         }
 
@@ -97,12 +97,12 @@ namespace GeoUtil
             return p;
         }
 
-        void CopyVertices(float2[] srcVert)
+        void CopyVertices(IPolygon src)
         {
-            this.vertices = new float2[srcVert.Length];
+            this.vertices = new float2[src.VertexCount];
             for (int i = 0; i < VertexCount; i++)
             {
-                this.vertices[i] = srcVert[i];
+                this.vertices[i] = src[i];
             }
         }
 
@@ -118,18 +118,12 @@ namespace GeoUtil
 
         public void CalculateWinding()
         {
-            VertexWinding = GeometryUtility.GetOrientation(this);
+            VertexWinding = GeometryUtility.GetWinding(this);
         }
 
         protected void CalculateEdges()
         {
-            for (int i = 0; i < vertices.Length; i++)
-            {
-                int idxNext = (i + 1) % vertices.Length;
-                var vCurrent = vertices[i];
-                var vNext = vertices[idxNext];
-                edges.Add(new Edge(vCurrent, vNext, i, idxNext));
-            }
+            edges = GeometryUtility.GetEdgesForPolygon(this,Edge.Create);
             edgesAreValid = true;
         }
 
@@ -142,12 +136,7 @@ namespace GeoUtil
 
         protected void CalculateCentroid()
         {
-            Centroid = float2.zero;
-            for (int i = 0; i < VertexCount; i++)
-            {
-                Centroid += vertices[i];
-            }
-            Centroid /= (float)VertexCount;
+            Centroid = GeometryUtility.CalculateCentroid(this);
         }
 
         protected void CalculateNonSerializedData()

@@ -56,6 +56,11 @@ namespace GeoUtil
             SPointIDX = sPointIDX;
             EPointIDX = ePointIDX;
         }
+
+        public static Edge Create(float2 sPoint, float2 ePoint, int sPointIDX, int ePointIDX)
+        {
+            return new Edge(sPoint, ePoint, sPointIDX, ePointIDX);
+        }
     }
 
     public interface ILineContainer

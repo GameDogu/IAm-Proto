@@ -2,6 +2,7 @@
 using System.Linq;
 using UnityEngine;
 using Unity.Mathematics;
+using System;
 
 /// <summary>
 /// some basic geometry utitltiy
@@ -10,74 +11,71 @@ using Unity.Mathematics;
 /// </summary>
 namespace GeoUtil
 {
-    public class MutablePolygon : Polygon
+    public class MutablePolygon : IPolygon
     {
-        bool manualNonSerializedDataUpdate;
+        List<float2> vertices;
 
-        public MutablePolygon(float2[] vertices, bool manualNonSerializedDataUpdate = false) : base(vertices)
+        public Bounds2D Bounds => GeometryUtility.CalculateBounds(this);
+
+        public int VertexCount => vertices.Count;
+
+        public VertexWinding VertexWinding => GeometryUtility.GetWinding(this);
+
+        public List<IPolygonEdge> Edges
         {
-            this.manualNonSerializedDataUpdate = manualNonSerializedDataUpdate;
+            get
+            {
+                return GeometryUtility.GetEdgesForPolygon(this,Edge.Create);
+            }
         }
 
-        public MutablePolygon(List<Vector2> vert, bool manualNonSerializedDataUpdate = false) : base(vert)
+        public MutablePolygon(float2[] vertices) 
         {
-            this.manualNonSerializedDataUpdate = manualNonSerializedDataUpdate;
+            this.vertices = vertices.ToList();
         }
 
-        public MutablePolygon(Vector2[] vert, bool manualNonSerializedDataUpdate = false) : base(vert)
+        public MutablePolygon(int vertCount)
         {
-            this.manualNonSerializedDataUpdate = manualNonSerializedDataUpdate;
+            vertices = new List<float2>(vertCount);        
         }
 
-        public MutablePolygon(int vertCount, bool manualNonSerializedDataUpdate = false)
+        public MutablePolygon(IPolygon src):this(src.VertexCount)
         {
-            vertices = new float2[vertCount];
-            this.manualNonSerializedDataUpdate = manualNonSerializedDataUpdate;
+            for (int i = 0; i < src.VertexCount; i++)
+            {
+                vertices[i] = src[i];
+            }
         }
 
-        public MutablePolygon(Polygon src, bool manualNonSerializedDataUpdate = false) : base(src)
-        {
-            this.manualNonSerializedDataUpdate = manualNonSerializedDataUpdate;
-        }
-
-        public new float2 this[int i]
+        public float2 this[int i]
         {
             get => vertices[i];
             set
             {
-                vertices[i] = value;
-                InvalidateEdges();
-                TryUpdateDataU();
-            }
-        }
+                if (i > vertices.Count || i < 0)
+                    throw new IndexOutOfRangeException();
 
-        private void TryUpdateDataU()
-        {
-            if (!manualNonSerializedDataUpdate)
-                CalculateNonSerializedData();
+                if (i == vertices.Count)
+                    vertices.Add(i);
+                else
+                    vertices[i] = value;
+            }
         }
 
         public void Reverse()
         {
-            vertices = vertices.Reverse().ToArray();
-            InvalidateEdges();
-            TryUpdateDataU();
+            vertices.Reverse();
         }
 
         public void RemoveRange(int beginIdx, int count,bool recalculateBounds=true)
         {
             var vert = vertices.ToList();
             vert.RemoveRange(beginIdx, count);
-            vertices = vert.ToArray();
-            TryUpdateDataU();
-            InvalidateEdges();
         }
 
         public Polygon MakeUnmutable(bool updateNonSerializedData = true)
         {
-            if (updateNonSerializedData)
-                CalculateNonSerializedData();
-            return Pilfer(src:this,nullSrc:true);
+            return new Polygon(this);
         }
 
     }

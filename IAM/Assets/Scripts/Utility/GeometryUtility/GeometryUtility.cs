@@ -79,6 +79,40 @@ namespace GeoUtil
         }
 
         /// <summary>
+        /// makes a list of edges for a given polygon
+        /// </summary>
+        /// <param name="polygon">polygon we want to get the edges</param>
+        /// <returns>the list of edges for the polygon</returns>
+        public static List<IPolygonEdge> GetEdgesForPolygon<T>(in IPolygon polygon,Func<float2, float2, int, int,T> generator) where T : IPolygonEdge, new()
+        {
+            List<IPolygonEdge> edges = new List<IPolygonEdge>();
+            for (int i = 0; i < polygon.VertexCount; i++)
+            {
+                int idxNext = (i + 1) % polygon.VertexCount;
+                var vCurrent = polygon[i];
+                var vNext = polygon[idxNext];
+                edges.Add(generator(vCurrent, vNext, i, idxNext));
+            }
+            return edges;
+        }
+
+        /// <summary>
+        /// calculates the centroid for a polygon
+        /// </summary>
+        /// <param name="polygon">polygon the centroid is calculated of</param>
+        /// <returns>the centroid of a polygon</returns>
+        public static float2 CalculateCentroid(in IPolygon polygon)
+        {
+            float2 centroid = float2.zero;
+            for (int i = 0; i < polygon.VertexCount; i++)
+            {
+                centroid += polygon[i];
+            }
+            centroid /= (float)polygon.VertexCount;
+            return centroid;
+        }
+
+        /// <summary>
         /// returns the instersection point of to line segments
         /// </summary>
         /// <param name="l0">first line segment</param>
@@ -136,7 +170,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="poly">the polygon we want the orientation of</param>
         /// <returns>the vertex orientation</returns>
-        public static VertexWinding GetOrientation(in Polygon poly)
+        public static VertexWinding GetWinding(in IPolygon poly)
         {
             if (IsMalformed(poly, out string malformType))
                 throw new MalforemdPolygonException(malformType);
@@ -179,7 +213,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="poly">the polygon</param>
         /// <returns>the index of the min y value vertex</returns>
-        private static int GetMinYVertexIndex(in Polygon poly)
+        private static int GetMinYVertexIndex(in IPolygon poly)
         {
             float min = float.MaxValue;
             int idx = -1;
@@ -201,7 +235,7 @@ namespace GeoUtil
         /// <param name="curIdx">current vertex index</param>
         /// <returns>the next index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetNextVertexIdx(in Polygon poly,int curIdx)
+        private static int GetNextVertexIdx(in IPolygon poly,int curIdx)
         {
             return (curIdx + 1) % poly.VertexCount;
         }
@@ -213,7 +247,7 @@ namespace GeoUtil
         /// <param name="curIdx">current vertex index</param>
         /// <returns>the next index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetPrevVertexIdx(in Polygon poly, int curIdx)
+        private static int GetPrevVertexIdx(in IPolygon poly, int curIdx)
         {
             return curIdx - 1 < 0 ? poly.VertexCount - 1 : curIdx - 1;
         }
@@ -239,7 +273,7 @@ namespace GeoUtil
         /// <param name="p">the polygon to check</param>
         /// <param name="malformedType">what malformation type(out param)</param>
         /// <returns>true if malformed</returns>
-        public static bool IsMalformed(in Polygon p,out string malformedType)
+        public static bool IsMalformed(in IPolygon p,out string malformedType)
         {
             malformedType = "";
             //TODO are there more malformation types?
@@ -255,13 +289,13 @@ namespace GeoUtil
         /// <param name="p">The polygon p</param>
         /// <param name="orientation">the winding wanted</param>
         /// <returns>a NEW polygon with the new winding</returns>
-        public static Polygon ChangeOrientation(in Polygon p, VertexWinding orientation = VertexWinding.CW)
+        public static Polygon ChangeOrientation(in IPolygon p, VertexWinding orientation = VertexWinding.CW)
         {
             if (orientation == p.VertexWinding)
                 return new Polygon(p);
 
             int startIdx = GetMinYVertexIndex(p);
-            var muteP = new MutablePolygon(p.VertexCount, manualNonSerializedDataUpdate:true);
+            var muteP = new MutablePolygon(p.VertexCount);
 
             muteP[0] = p[startIdx];
 
@@ -390,7 +424,7 @@ namespace GeoUtil
         /// <param name="p">point to test</param>
         /// <param name="polygon">polygon to test against</param>
         /// <returns> == 0 iff outside</returns>
-        public static int WindingNumberPointInPolygon(float2 p, in Polygon polygon)
+        public static int WindingNumberPointInPolygon(float2 p, in IPolygon polygon)
         {
             int windingNumber = 0;
             foreach (Edge edge in polygon.Edges)
@@ -418,7 +452,7 @@ namespace GeoUtil
         /// <param name="p">the point</param>
         /// <param name="polygon">the polygon</param>
         /// <returns>true if contained</returns>
-        public static bool PolygonContains(float2 p, in Polygon polygon)
+        public static bool PolygonContains(float2 p, in IPolygon polygon)
         {
             return polygon.Bounds.Contains(p) && WindingNumberPointInPolygon(p, polygon) != 0;
         }
@@ -428,7 +462,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static Bounds2D CalculateBounds(in Polygon p)
+        public static Bounds2D CalculateBounds(in IPolygon p)
         {
             var xBounds = (min: float.MaxValue, max: float.MinValue);
             var yBounds = (min: float.MaxValue, max: float.MinValue);
@@ -458,7 +492,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="p">the poolygon to check</param>
         /// <returns></returns>
-        public static bool CheckPolygonSelfIntersection(in Polygon p)
+        public static bool CheckPolygonSelfIntersection(in IPolygon p)
         {
             return SelfIntersection(p) > 0 ? true : false;
         }
@@ -545,7 +579,6 @@ namespace GeoUtil
 
         }
 
-
         /// <summary>
         /// checks if polygon is convex
         /// </summary>
@@ -562,7 +595,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="polygon">the polygon to check</param>
         /// <returns>-1 if no intersect 1 otherwise</returns>
-        static int SelfIntersection(in Polygon polygon)
+        static int SelfIntersection(in IPolygon polygon)
         {
             if (polygon.VertexCount < 3)
                 return 0;
@@ -587,7 +620,7 @@ namespace GeoUtil
         /// <summary>
         /// adapted from https://gist.github.com/KvanTTT/3855122
         /// </summary>
-        static float Square(in Polygon polygon)
+        static float Square(in IPolygon polygon)
         {
             float S = 0;
             if (polygon.VertexCount >= 3)
@@ -602,7 +635,7 @@ namespace GeoUtil
         /// <summary>
         /// adapted from https://gist.github.com/KvanTTT/3855122
         /// </summary>
-        static int IsConvex(in Polygon Polygon)
+        static int IsConvex(in IPolygon Polygon)
         {
             if (Polygon.VertexCount >= 3)
             {
@@ -634,7 +667,7 @@ namespace GeoUtil
         /// <summary>
         /// adapted from https://gist.github.com/KvanTTT/3855122
         /// </summary>
-        static bool Intersect(in Polygon polygon, int vertex1Ind, int vertex2Ind, int vertex3Ind)
+        static bool Intersect(in IPolygon polygon, int vertex1Ind, int vertex2Ind, int vertex3Ind)
         {
             float s1, s2, s3;
             for (int i = 0; i < polygon.VertexCount; i++)

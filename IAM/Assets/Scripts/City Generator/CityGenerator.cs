@@ -65,7 +65,7 @@ public class CityGenerator : MonoBehaviour
 
     public void CheckOrientation()
     {
-        Debug.Log(GeoUtil.GeometryUtility.GetOrientation(new Polygon(deformedPoints)));
+        Debug.Log(GeoUtil.GeometryUtility.GetWinding(new Polygon(deformedPoints)));
     }
 
     public void LogPolygon()

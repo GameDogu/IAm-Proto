@@ -93,11 +93,14 @@
     <Compile Include="Assets\Scripts\Utility\BucketedEventCaller.cs" />
     <Compile Include="Assets\Scripts\Utility\GeometryUtility\Bool2Extension.cs" />
     <Compile Include="Assets\Scripts\Utility\GeometryUtility\Bounds2D.cs" />
+    <Compile Include="Assets\Scripts\Utility\GeometryUtility\Exceptions.cs" />
     <Compile Include="Assets\Scripts\Utility\GeometryUtility\GeometryUtility.cs" />
+    <Compile Include="Assets\Scripts\Utility\GeometryUtility\IPolygon.cs" />
     <Compile Include="Assets\Scripts\Utility\GeometryUtility\LinePosition.cs" />
     <Compile Include="Assets\Scripts\Utility\GeometryUtility\LinesAndEdges.cs" />
     <Compile Include="Assets\Scripts\Utility\GeometryUtility\MutablePolygon.cs" />
     <Compile Include="Assets\Scripts\Utility\GeometryUtility\Polygon.cs" />
+    <Compile Include="Assets\Scripts\Utility\GeometryUtility\VertexOrientation.cs" />
     <Compile Include="Assets\Scripts\Utility\Priority_Queue\Priority Queue\FastPriorityQueue.cs" />
     <Compile Include="Assets\Scripts\Utility\Priority_Queue\Priority Queue\FastPriorityQueueNode.cs" />
     <Compile Include="Assets\Scripts\Utility\Priority_Queue\Priority Queue\IPriorityQueue.cs" />
