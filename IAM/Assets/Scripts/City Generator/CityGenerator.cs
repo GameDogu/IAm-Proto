@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using GeoUtil;
+using Unity.Mathematics;
 using System;
 
 public class CityGenerator : MonoBehaviour
@@ -67,6 +68,17 @@ public class CityGenerator : MonoBehaviour
         Debug.Log(GeoUtil.GeometryUtility.GetOrientation(new Polygon(deformedPoints)));
     }
 
+    public void LogPolygon()
+    {
+        Debug.Log(new Polygon(deformedPoints).ToString());
+    }
+
+    public void ChangeOrientation()
+    {
+        var p = new Polygon(deformedPoints);
+        var np = GeoUtil.GeometryUtility.ChangeOrientation(p,p.VertexWinding.Opposite());
+        Debug.Log(np.ToString());
+    }
 }
 
 [CustomEditor(typeof(CityGenerator))]
@@ -96,5 +108,9 @@ public class CityGenEditor : Editor
             gen.CheckOrientation();
         }
 
+        if (GUILayout.Button("Change Orientation"))
+        {
+            gen.ChangeOrientation();
+        }
     }
 }

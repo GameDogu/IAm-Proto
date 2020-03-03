@@ -16,8 +16,6 @@ namespace GeoUtil
 
     public static class GeometryUtility
     {
-        const float PriorityQueuePercision = 1000f;
-
         /// <summary>
         /// calculate point p is left right or on a line formed by lp0 to lp1
         /// </summary>
@@ -62,7 +60,7 @@ namespace GeoUtil
         /// <param name="p">the edge pair to check</param>
         /// <returns>true if intersect</returns>
         //https://algs4.cs.princeton.edu/91primitives/
-        public static bool Intersects<T>(T l0, T l1) where T : ILineSegmentContainer
+        public static bool Intersects<T>(T l0, T l1) where T : ILineContainer
         {
             return Intersects(l0.Line, l1.Line);
         }
@@ -73,7 +71,7 @@ namespace GeoUtil
         /// <param name="p">the edge pair to check</param>
         /// <returns>true if intersect</returns>
         //https://algs4.cs.princeton.edu/91primitives/
-        public static bool Intersects(LineSegment l0, LineSegment l1) 
+        public static bool Intersects(Line l0, Line l1) 
         {
             if (CalculateCCW(l0.SPoint, l0.EPoint, l1.SPoint) * CalculateCCW(l0.SPoint, l0.EPoint, l1.EPoint) > 0) return false;
             if (CalculateCCW(l1.SPoint, l1.EPoint, l0.SPoint) * CalculateCCW(l1.SPoint, l1.EPoint, l0.EPoint) > 0) return false;
@@ -86,7 +84,7 @@ namespace GeoUtil
         /// <param name="l0">first line segment</param>
         /// <param name="l1">second line segment</param>
         /// <returns>the intersection point</returns>
-        public static float2 IntersectUnknownIntersection(LineSegment l0, LineSegment l1)
+        public static float2 IntersectUnknownIntersection(Line l0, Line l1)
         {
             if (Intersects(l0, l1))
             {
@@ -103,7 +101,7 @@ namespace GeoUtil
         /// <param name="l1">second line segment</param>
         /// <returns>the intersection point</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float2 IntersectKnownIntersection(LineSegment l0, LineSegment l1)
+        public static float2 IntersectKnownIntersection(Line l0, Line l1)
         {
             var res = IntersectHomogenouseCoords(l0, l1);
             return res.xy / res.z;
@@ -116,9 +114,9 @@ namespace GeoUtil
         /// <param name="l1">second line segment</param>
         /// <returns>intersection point in hom coords</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float3 IntersectHomogenouseCoords(LineSegment l0, LineSegment l1)
+        public static float3 IntersectHomogenouseCoords(Line l0, Line l1)
         {
-            return math.cross(l0.Line, l1.Line);
+            return math.cross(l0.HomogenousLineCoords, l1.HomogenousLineCoords);
         }
 
         /// <summary>
@@ -127,7 +125,7 @@ namespace GeoUtil
         /// <param name="l">the line segments</param>
         /// <returns>the line coords in porjective space</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float3 CalcHomogeneousLine(LineSegment l)
+        public static float3 CalcHomogeneousLine(Line l)
         {
             return math.cross(new float3(l.SPoint,1), new float3(l.EPoint,1));
         }
@@ -138,66 +136,88 @@ namespace GeoUtil
         /// </summary>
         /// <param name="poly">the polygon we want the orientation of</param>
         /// <returns>the vertex orientation</returns>
-        public static VertexOrientation GetOrientation(Polygon poly)
+        public static VertexWinding GetOrientation(in Polygon poly)
         {
-            if (poly.HasSelfIntersection)
-                throw new MalforemdPolygonException("Selfintersection");
+            if (IsMalformed(poly, out string malformType))
+                throw new MalforemdPolygonException(malformType);
 
-            int minYVertIndex = getMinYIdx();
+            int curIdx = GetMinYVertexIndex(poly);
 
-            int next = getNextIdx(minYVertIndex);
+            int nextIdx = GetNextVertexIdx(poly,curIdx);
 
-            return Orientation(minYVertIndex, next);
-
-            VertexOrientation Orientation(int curIdx, int nextIdx)
+            if (poly[curIdx].x > poly[nextIdx].x)
+                return VertexWinding.CW;
+            else if (poly[curIdx].x < poly[nextIdx].x)
+                return VertexWinding.CCW;
+            else
             {
-                if (poly[curIdx].x > poly[nextIdx].x)
-                    return VertexOrientation.CW;
-                else if (poly[curIdx].x < poly[nextIdx].x)
-                    return VertexOrientation.CCW;
-                else
-                {
-                    int startIdx = curIdx;
-                    curIdx = nextIdx;
-                    nextIdx = getNextIdx(curIdx);
+                int startIdx = curIdx;
+                curIdx = nextIdx;
+                nextIdx = GetNextVertexIdx(poly, curIdx);
 
-                    while (curIdx != startIdx)
-                    {
-                        //inverted
-                        if (poly[curIdx].x < poly[nextIdx].x)
-                            return VertexOrientation.CW;
-                        else if (poly[curIdx].x > poly[nextIdx].x)
-                            return VertexOrientation.CCW;
-                        else
-                        {
-                            curIdx = nextIdx;
-                            nextIdx = getNextIdx(curIdx);
-                        }
-                    }
-                    throw new MalforemdPolygonException("Unorientable");
-                }
-            }
-
-            int getMinYIdx()
-            {
-                float min = float.MaxValue;
-                int idx = -1;
-                for (int i = 0; i < poly.VertexCount; i++)
+                while (curIdx != startIdx)
                 {
-                    if (poly[i].y < min)
+                    //inverted
+                    if (poly[curIdx].x < poly[nextIdx].x)
+                        return VertexWinding.CW;
+                    else if (poly[curIdx].x > poly[nextIdx].x)
+                        return VertexWinding.CCW;
+                    else
                     {
-                        min = poly[i].y;
-                        idx = i;
+                        curIdx = nextIdx;
+                        nextIdx = GetNextVertexIdx(poly, curIdx);
                     }
                 }
-                return idx;
+                throw new MalforemdPolygonException("Unorientable");
             }
+            
 
-            int getNextIdx(int idx)
-            {
-                return (idx + 1) % poly.VertexCount;
-            }
         }
+
+        /// <summary>
+        /// gets the index of the first(if multiple had the same min y value) vertex with the minimum y value
+        /// </summary>
+        /// <param name="poly">the polygon</param>
+        /// <returns>the index of the min y value vertex</returns>
+        private static int GetMinYVertexIndex(in Polygon poly)
+        {
+            float min = float.MaxValue;
+            int idx = -1;
+            for (int i = 0; i < poly.VertexCount; i++)
+            {
+                if (poly[i].y < min)
+                {
+                    min = poly[i].y;
+                    idx = i;
+                }
+            }
+            return idx;
+        }
+
+        /// <summary>
+        /// calculates the next vertex index
+        /// </summary>
+        /// <param name="poly">polygon we are interessted in</param>
+        /// <param name="curIdx">current vertex index</param>
+        /// <returns>the next index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetNextVertexIdx(in Polygon poly,int curIdx)
+        {
+            return (curIdx + 1) % poly.VertexCount;
+        }
+
+        /// <summary>
+        /// calculates the next vertex index
+        /// </summary>
+        /// <param name="poly">polygon we are interessted in</param>
+        /// <param name="curIdx">current vertex index</param>
+        /// <returns>the next index</returns>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static int GetPrevVertexIdx(in Polygon poly, int curIdx)
+        {
+            return curIdx - 1 < 0 ? poly.VertexCount - 1 : curIdx - 1;
+        }
+
 
         /// <summary>
         /// checks if a point is in a certain relational position to a line
@@ -212,15 +232,53 @@ namespace GeoUtil
             return CalculateLinePosition(lP0, lP1, p) == posToCheckAgains;
         }
 
+
+        /// <summary>
+        /// checks if a polygon is malformed in any way
+        /// </summary>
+        /// <param name="p">the polygon to check</param>
+        /// <param name="malformedType">what malformation type(out param)</param>
+        /// <returns>true if malformed</returns>
+        public static bool IsMalformed(in Polygon p,out string malformedType)
+        {
+            malformedType = "";
+            //TODO are there more malformation types?
+            bool malformed =  CheckPolygonSelfIntersection(p);
+            if (malformed)
+                malformedType = "SelfIntersection";
+            return malformed;
+        }
+
         /// <summary>
         /// orients the vertces in a polygon to a certain winding
         /// </summary>
         /// <param name="p">The polygon p</param>
         /// <param name="orientation">the winding wanted</param>
-        /// <returns>a new polygon with the new winding</returns>
-        public static Polygon OrientVertices(Polygon p, VertexOrientation orientation = VertexOrientation.CW)
+        /// <returns>a NEW polygon with the new winding</returns>
+        public static Polygon ChangeOrientation(in Polygon p, VertexWinding orientation = VertexWinding.CW)
         {
-            throw new System.NotImplementedException();
+            if (orientation == p.VertexWinding)
+                return new Polygon(p);
+
+            int startIdx = GetMinYVertexIndex(p);
+            var muteP = new MutablePolygon(p.VertexCount, manualNonSerializedDataUpdate:true);
+
+            muteP[0] = p[startIdx];
+
+            int currentIdx = startIdx;
+            int i = 1;
+            //TODO
+            do
+            {
+                currentIdx = GetPrevVertexIdx(p, currentIdx);
+                muteP[i] = p[currentIdx];
+                i++;
+
+            } while (startIdx != GetPrevVertexIdx(p,currentIdx));
+     
+
+            return muteP.MakeUnmutable(updateNonSerializedData:true);
+
         }
 
         /// <summary>
@@ -233,6 +291,29 @@ namespace GeoUtil
         public static bool IsLeftOfLine(float2 lP0, float2 lP1, float2 p)
         {
             return CheckPointPositionAgainstLine(lP0, lP1, p, LinePosition.left);
+        }
+
+
+        /// <summary>
+        /// check if p is left of line
+        /// </summary>
+        ///<param name="l">The line segement container</param>
+        /// <param name="p">point to check</param>
+        /// <returns>true if left of line</returns>
+        public static bool IsLeftOfLine(ILineContainer l, float2 p)
+        {
+            return IsLeftOfLine(l.Line, p);
+        }
+
+        /// <summary>
+        /// check if p is left of line
+        /// </summary>
+        ///<param name="l">The line segement</param>
+        /// <param name="p">point to check</param>
+        /// <returns>true if left of line</returns>
+        public static bool IsLeftOfLine(Line l, float2 p)
+        {
+            return IsLeftOfLine(l.SPoint, l.EPoint, p);
         }
 
         /// <summary>
@@ -248,17 +329,60 @@ namespace GeoUtil
         }
 
         /// <summary>
-        /// check if p is on of line
+        /// check if p is right of line
+        /// </summary>
+        ///<param name="l">The line segement container</param>
+        /// <param name="p">point to check</param>
+        /// <returns>true if right of line</returns>
+        public static bool IsRightOfLine(ILineContainer l, float2 p)
+        {
+            return IsRightOfLine(l.Line.SPoint, l.Line.EPoint, p);
+        }
+
+        /// <summary>
+        /// check if p is right of line
+        /// </summary>
+        ///<param name="l">The line segement</param>
+        /// <param name="p">point to check</param>
+        /// <returns>true if right of line</returns>
+        public static bool IsRightOfLine(Line l, float2 p)
+        {
+            return IsRightOfLine(l.SPoint, l.EPoint, p);
+        }
+
+        /// <summary>
+        /// check if p is on line
         /// </summary>
         /// <param name="lP0">line point 1</param>
         /// <param name="lP1">line pont 2</param>
         /// <param name="p">point to check</param>
-        /// <returns>true if on of line</returns>
+        /// <returns>true if on line</returns>
         public static bool IsOnLine(float2 lP0, float2 lP1, float2 p)
         {
             return CheckPointPositionAgainstLine(lP0, lP1, p, LinePosition.on);
         }
+        
+        /// <summary>
+        /// check if p is on line
+        /// </summary>
+        ///<param name="l">The line segement container</param>
+        /// <param name="p">point to check</param>
+        /// <returns>true if on line</returns>
+        public static bool IsOnLine(ILineContainer l,float2 p)
+        {
+            return IsOnLine(l.Line.SPoint, l.Line.EPoint, p);
+        }
 
+        /// <summary>
+        /// check if p is on line
+        /// </summary>
+        ///<param name="l">The line segement</param>
+        /// <param name="p">point to check</param>
+        /// <returns>true if left of line</returns>
+        public static bool IsOnLine(Line l, float2 p)
+        {
+            return IsOnLine(l.SPoint, l.EPoint, p);
+        }
 
         /// <summary>
         /// winding number point to polygon
@@ -266,7 +390,7 @@ namespace GeoUtil
         /// <param name="p">point to test</param>
         /// <param name="polygon">polygon to test against</param>
         /// <returns> == 0 iff outside</returns>
-        public static int WindingNumberPointInPolygon(float2 p, Polygon polygon)
+        public static int WindingNumberPointInPolygon(float2 p, in Polygon polygon)
         {
             int windingNumber = 0;
             foreach (Edge edge in polygon.Edges)
@@ -294,7 +418,7 @@ namespace GeoUtil
         /// <param name="p">the point</param>
         /// <param name="polygon">the polygon</param>
         /// <returns>true if contained</returns>
-        public static bool PolygonContains(float2 p, Polygon polygon)
+        public static bool PolygonContains(float2 p, in Polygon polygon)
         {
             return polygon.Bounds.Contains(p) && WindingNumberPointInPolygon(p, polygon) != 0;
         }
@@ -304,7 +428,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static Bounds2D CalculateBounds(Polygon p)
+        public static Bounds2D CalculateBounds(in Polygon p)
         {
             var xBounds = (min: float.MaxValue, max: float.MinValue);
             var yBounds = (min: float.MaxValue, max: float.MinValue);
@@ -334,7 +458,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="p">the poolygon to check</param>
         /// <returns></returns>
-        public static bool CheckPolygonSelfIntersection(Polygon p)
+        public static bool CheckPolygonSelfIntersection(in Polygon p)
         {
             return SelfIntersection(p) > 0 ? true : false;
         }
@@ -402,8 +526,8 @@ namespace GeoUtil
             return indices;
             int[] l_CalcIndex(int idx)
             {
-                int prev = idx - 1 < 0 ? poly.VertexCount - 1 : idx - 1;
-                int next = (idx + 1) % poly.VertexCount;
+                int prev = GetPrevVertexIdx(poly, idx);
+                int next = GetNextVertexIdx(poly, idx);
                 return new int[] { prev, idx, next };
             }
 
@@ -427,7 +551,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="polygon">the polygon to check</param>
         /// <returns>true if convex</returns>
-        public static bool CheckPolygonConvex(Polygon polygon)
+        public static bool CheckPolygonConvex(in Polygon polygon)
         {
             return IsConvex(polygon) > 0;
         }
@@ -438,7 +562,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="polygon">the polygon to check</param>
         /// <returns>-1 if no intersect 1 otherwise</returns>
-        static int SelfIntersection(Polygon polygon)
+        static int SelfIntersection(in Polygon polygon)
         {
             if (polygon.VertexCount < 3)
                 return 0;
@@ -463,7 +587,7 @@ namespace GeoUtil
         /// <summary>
         /// adapted from https://gist.github.com/KvanTTT/3855122
         /// </summary>
-        static float Square(Polygon polygon)
+        static float Square(in Polygon polygon)
         {
             float S = 0;
             if (polygon.VertexCount >= 3)
@@ -478,7 +602,7 @@ namespace GeoUtil
         /// <summary>
         /// adapted from https://gist.github.com/KvanTTT/3855122
         /// </summary>
-        static int IsConvex(Polygon Polygon)
+        static int IsConvex(in Polygon Polygon)
         {
             if (Polygon.VertexCount >= 3)
             {
@@ -510,7 +634,7 @@ namespace GeoUtil
         /// <summary>
         /// adapted from https://gist.github.com/KvanTTT/3855122
         /// </summary>
-        static bool Intersect(Polygon polygon, int vertex1Ind, int vertex2Ind, int vertex3Ind)
+        static bool Intersect(in Polygon polygon, int vertex1Ind, int vertex2Ind, int vertex3Ind)
         {
             float s1, s2, s3;
             for (int i = 0; i < polygon.VertexCount; i++)
@@ -531,7 +655,7 @@ namespace GeoUtil
         /// <summary>
         /// adapted from https://gist.github.com/KvanTTT/3855122
         /// </summary>
-        static float PMSquare(float2 p1, float2 p2)
+        static float PMSquare(float2 p1,float2 p2)
         {
             return (p2.x * p1.y - p1.x * p2.y);
         }

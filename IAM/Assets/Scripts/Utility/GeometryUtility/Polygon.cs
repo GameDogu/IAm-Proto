@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
+using System.Text;
 
 /// <summary>
 /// some basic geometry utitltiy
@@ -13,14 +14,15 @@ namespace GeoUtil
 {
     public class Polygon
     {
-
         protected float2[] vertices;
 
         public Bounds2D Bounds { get; protected set; }
 
         public int VertexCount => vertices.Length;
 
-        public float2 Centroid;
+        public float2 Centroid { get; protected set; }
+
+        public VertexWinding VertexWinding { get; protected set; }
 
         protected List<Edge> edges;
         private bool edgesAreValid = false;
@@ -42,8 +44,7 @@ namespace GeoUtil
         {
             this.vertices = vertices ?? throw new ArgumentNullException(nameof(vertices));
 
-            CalculateBounds();
-            CalculateCentroid();
+            CalculateNonSerializedData();
         }
 
         public Polygon(List<Vector2> vert)
@@ -53,8 +54,7 @@ namespace GeoUtil
             {
                 vertices[i] = new float2(vert[i].x, vert[i].y);
             }
-            CalculateBounds();
-            CalculateCentroid();
+            CalculateNonSerializedData();
         }
 
         public Polygon(Vector2[] vert)
@@ -64,8 +64,7 @@ namespace GeoUtil
             {
                 vertices[i] = new float2(vert[i].x, vert[i].y);
             }
-            CalculateBounds();
-            CalculateCentroid();
+            CalculateNonSerializedData();
         }
 
         protected Polygon()
@@ -78,6 +77,7 @@ namespace GeoUtil
             //CalculateCentroid();
             Bounds = src.Bounds;
             Centroid = src.Centroid;
+            VertexWinding = src.VertexWinding;
         }
 
         protected Polygon Pilfer(Polygon src, bool nullSrc = false)
@@ -86,6 +86,7 @@ namespace GeoUtil
             p.vertices = src.vertices;
             p.Bounds = src.Bounds;
             p.Centroid = src.Centroid;
+            p.VertexWinding = src.VertexWinding;
 
             if (nullSrc)
             {
@@ -115,6 +116,11 @@ namespace GeoUtil
             Bounds = GeometryUtility.CalculateBounds(this);
         }
 
+        public void CalculateWinding()
+        {
+            VertexWinding = GeometryUtility.GetOrientation(this);
+        }
+
         protected void CalculateEdges()
         {
             for (int i = 0; i < vertices.Length; i++)
@@ -129,7 +135,8 @@ namespace GeoUtil
 
         protected void InvalidateEdges()
         {
-            edges.Clear();
+            if(edges != null)
+                edges.Clear();
             edgesAreValid = false;
         }
 
@@ -143,10 +150,45 @@ namespace GeoUtil
             Centroid /= (float)VertexCount;
         }
 
+        protected void CalculateNonSerializedData()
+        {
+            CalculateBounds();
+            CalculateCentroid();
+            CalculateWinding();
+        }
+
         public Mesh Triangulate()
         {
             throw new NotImplementedException();
         }
+
+        public void Log(ILogger l)
+        {
+            Stringify(l.Log);
+        }
+
+        public override string ToString()
+        {
+            StringBuilder b = new StringBuilder();
+
+            Stringify((s)=> b.Append(s),addNewLine:true);
+            return b.ToString();
+        }
+
+        private void Stringify(Action<string> stringAction,bool addNewLine = false)
+        {
+            string nl = addNewLine ? "\n" : "";
+            stringAction("Polygon:"+ nl);
+            stringAction($"Winding: {VertexWinding}" + nl);
+            stringAction($"Centroid: {Centroid}" + nl);
+            stringAction($"Bounds:\n\tCenter: {Bounds.Center}\n\tExtends: {Bounds.Extents}" + nl);
+            stringAction("Vertices:" + nl);
+            for (int i = 0; i < VertexCount; i++)
+            {
+                stringAction($"{i}: {vertices[i]}" + nl);
+            }
+        }
+
     }
 }
 

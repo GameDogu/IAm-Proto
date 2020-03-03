@@ -19,14 +19,14 @@ namespace GeoUtil
         }
     }
 
-    public struct LineSegment
+    public struct Line
     {
         public float2 SPoint { get; private set; }
         public float2 EPoint { get; private set; }
 
-        public float3 Line => GeometryUtility.CalcHomogeneousLine(this);
+        public float3 HomogenousLineCoords => GeometryUtility.CalcHomogeneousLine(this);
 
-        public LineSegment(float2 sPoint, float2 ePoint) : this()
+        public Line(float2 sPoint, float2 ePoint) : this()
         {
             SPoint = sPoint;
             EPoint = ePoint;
@@ -35,7 +35,7 @@ namespace GeoUtil
 
     public struct Edge : IPolygonEdge
     {
-        public LineSegment Line { get; private set; }
+        public Line Line { get; private set; }
         public int SPointIDX { get; private set; }
         public int EPointIDX { get; private set; }
 
@@ -43,7 +43,7 @@ namespace GeoUtil
 
         public float2 EPoint => Line.EPoint;
 
-        public Edge(LineSegment line, int sPointIDX, int ePointIDX) : this()
+        public Edge(Line line, int sPointIDX, int ePointIDX) : this()
         {
             Line = line;
             SPointIDX = sPointIDX;
@@ -52,18 +52,18 @@ namespace GeoUtil
 
         public Edge(float2 sPoint, float2 ePoint, int sPointIDX, int ePointIDX)
         {
-            Line = new LineSegment(sPoint,ePoint);
+            Line = new Line(sPoint,ePoint);
             SPointIDX = sPointIDX;
             EPointIDX = ePointIDX;
         }
     }
 
-    public interface ILineSegmentContainer
+    public interface ILineContainer
     {
-        LineSegment Line { get; }
+        Line Line { get; }
     }
 
-    public interface IPolygonEdge : ILineSegmentContainer
+    public interface IPolygonEdge : ILineContainer
     {
         float2 SPoint { get; }
         float2 EPoint { get; }

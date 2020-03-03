@@ -8,9 +8,18 @@ using Unity.Mathematics;
 /// </summary>
 namespace GeoUtil
 {
-    public enum VertexOrientation
+    public enum VertexWinding
     {
         CW,
         CCW
     }
+
+    public static class VertexWindingExtensions
+    {
+        public static VertexWinding Opposite(this VertexWinding w)
+        {
+            return (VertexWinding)(((int)w + 1) % 2);
+        }
+    }
+
 }
