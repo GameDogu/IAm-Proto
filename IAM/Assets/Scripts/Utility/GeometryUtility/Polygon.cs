@@ -73,15 +73,36 @@ namespace GeoUtil
 
         public Polygon(Polygon src)
         {
-            this.vertices = new float2[src.VertexCount];
-            for (int i = 0; i < VertexCount; i++)
-            {
-                this.vertices[i] = src[i];
-            }
+            CopyVertices(src.vertices);
             //CalculateBounds();
             //CalculateCentroid();
             Bounds = src.Bounds;
             Centroid = src.Centroid;
+        }
+
+        protected Polygon Pilfer(Polygon src, bool nullSrc = false)
+        {
+            Polygon p = new Polygon();
+            p.vertices = src.vertices;
+            p.Bounds = src.Bounds;
+            p.Centroid = src.Centroid;
+
+            if (nullSrc)
+            {
+                src.vertices = null;
+                src.edges = null;
+            }
+
+            return p;
+        }
+
+        void CopyVertices(float2[] srcVert)
+        {
+            this.vertices = new float2[srcVert.Length];
+            for (int i = 0; i < VertexCount; i++)
+            {
+                this.vertices[i] = srcVert[i];
+            }
         }
 
         public float2 this[int i]

@@ -4,6 +4,7 @@ using UnityEngine;
 using Unity.Mathematics;
 using Priority_Queue;
 using System.Runtime.CompilerServices;
+using GeoUtil.Exceptions;
 
 /// <summary>
 /// some basic geometry utitltiy
@@ -132,6 +133,73 @@ namespace GeoUtil
         }
 
         /// <summary>
+        /// calculate polygon orientation
+        /// may throw malformed polygon exception
+        /// </summary>
+        /// <param name="poly">the polygon we want the orientation of</param>
+        /// <returns>the vertex orientation</returns>
+        public static VertexOrientation GetOrientation(Polygon poly)
+        {
+            if (poly.HasSelfIntersection)
+                throw new MalforemdPolygonException("Selfintersection");
+
+            int minYVertIndex = getMinYIdx();
+
+            int next = getNextIdx(minYVertIndex);
+
+            return Orientation(minYVertIndex, next);
+
+            VertexOrientation Orientation(int curIdx, int nextIdx)
+            {
+                if (poly[curIdx].x > poly[nextIdx].x)
+                    return VertexOrientation.CW;
+                else if (poly[curIdx].x < poly[nextIdx].x)
+                    return VertexOrientation.CCW;
+                else
+                {
+                    int startIdx = curIdx;
+                    curIdx = nextIdx;
+                    nextIdx = getNextIdx(curIdx);
+
+                    while (curIdx != startIdx)
+                    {
+                        //inverted
+                        if (poly[curIdx].x < poly[nextIdx].x)
+                            return VertexOrientation.CW;
+                        else if (poly[curIdx].x > poly[nextIdx].x)
+                            return VertexOrientation.CCW;
+                        else
+                        {
+                            curIdx = nextIdx;
+                            nextIdx = getNextIdx(curIdx);
+                        }
+                    }
+                    throw new MalforemdPolygonException("Unorientable");
+                }
+            }
+
+            int getMinYIdx()
+            {
+                float min = float.MaxValue;
+                int idx = -1;
+                for (int i = 0; i < poly.VertexCount; i++)
+                {
+                    if (poly[i].y < min)
+                    {
+                        min = poly[i].y;
+                        idx = i;
+                    }
+                }
+                return idx;
+            }
+
+            int getNextIdx(int idx)
+            {
+                return (idx + 1) % poly.VertexCount;
+            }
+        }
+
+        /// <summary>
         /// checks if a point is in a certain relational position to a line
         /// </summary>
         /// <param name="lP0">line point 1</param>
@@ -142,6 +210,17 @@ namespace GeoUtil
         private static bool CheckPointPositionAgainstLine(float2 lP0, float2 lP1, float2 p, LinePosition posToCheckAgains)
         {
             return CalculateLinePosition(lP0, lP1, p) == posToCheckAgains;
+        }
+
+        /// <summary>
+        /// orients the vertces in a polygon to a certain winding
+        /// </summary>
+        /// <param name="p">The polygon p</param>
+        /// <param name="orientation">the winding wanted</param>
+        /// <returns>a new polygon with the new winding</returns>
+        public static Polygon OrientVertices(Polygon p, VertexOrientation orientation = VertexOrientation.CW)
+        {
+            throw new System.NotImplementedException();
         }
 
         /// <summary>

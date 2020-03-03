@@ -12,12 +12,6 @@ namespace GeoUtil
 {
     public class MutablePolygon : Polygon
     {
-        public enum VertexOrientation
-        {
-            CW,
-            CCW
-        }
-
         public MutablePolygon(float2[] vertices) : base(vertices)
         {}
 
@@ -55,14 +49,9 @@ namespace GeoUtil
             InvalidateEdges();
         }
 
-        protected void OrientVertices(VertexOrientation orientation = VertexOrientation.CW)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public Polygon MakeUnmutable()
         {
-            return new Polygon(this);
+            return Pilfer(src:this,nullSrc:true);
         }
 
     }

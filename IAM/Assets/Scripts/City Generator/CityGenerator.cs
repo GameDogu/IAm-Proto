@@ -62,6 +62,11 @@ public class CityGenerator : MonoBehaviour
         Debug.Log(new Polygon(deformedPoints).IsConvex);
     }
 
+    public void CheckOrientation()
+    {
+        Debug.Log(GeoUtil.GeometryUtility.GetOrientation(new Polygon(deformedPoints)));
+    }
+
 }
 
 [CustomEditor(typeof(CityGenerator))]
@@ -85,5 +90,11 @@ public class CityGenEditor : Editor
         {
             gen.CheckConvexity();
         }
+
+        if (GUILayout.Button("Check Orientation"))
+        {
+            gen.CheckOrientation();
+        }
+
     }
 }
