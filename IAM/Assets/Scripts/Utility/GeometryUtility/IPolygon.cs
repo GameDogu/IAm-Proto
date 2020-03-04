@@ -20,8 +20,6 @@ namespace GeoUtil
         Bounds2D Bounds { get; }
 
         VertexWinding VertexWinding { get; }
-
-        List<IPolygonEdge> Edges { get; }
     }
 }
 

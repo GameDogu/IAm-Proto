@@ -21,14 +21,6 @@ namespace GeoUtil
 
         public VertexWinding VertexWinding => GeometryUtility.GetWinding(this);
 
-        public List<IPolygonEdge> Edges
-        {
-            get
-            {
-                return GeometryUtility.GetEdgesForPolygon(this,Edge.Create);
-            }
-        }
-
         public MutablePolygon(float2[] vertices) 
         {
             this.vertices = vertices.ToList();

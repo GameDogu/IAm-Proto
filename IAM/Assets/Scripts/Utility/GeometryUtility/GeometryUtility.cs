@@ -71,29 +71,11 @@ namespace GeoUtil
         /// <param name="p">the edge pair to check</param>
         /// <returns>true if intersect</returns>
         //https://algs4.cs.princeton.edu/91primitives/
-        public static bool Intersects(Line l0, Line l1) 
+        public static bool Intersects(Line l0, Line l1)
         {
             if (CalculateCCW(l0.SPoint, l0.EPoint, l1.SPoint) * CalculateCCW(l0.SPoint, l0.EPoint, l1.EPoint) > 0) return false;
             if (CalculateCCW(l1.SPoint, l1.EPoint, l0.SPoint) * CalculateCCW(l1.SPoint, l1.EPoint, l0.EPoint) > 0) return false;
             return true;
-        }
-
-        /// <summary>
-        /// makes a list of edges for a given polygon
-        /// </summary>
-        /// <param name="polygon">polygon we want to get the edges</param>
-        /// <returns>the list of edges for the polygon</returns>
-        public static List<IPolygonEdge> GetEdgesForPolygon<T>(in IPolygon polygon,Func<float2, float2, int, int,T> generator) where T : IPolygonEdge, new()
-        {
-            List<IPolygonEdge> edges = new List<IPolygonEdge>();
-            for (int i = 0; i < polygon.VertexCount; i++)
-            {
-                int idxNext = (i + 1) % polygon.VertexCount;
-                var vCurrent = polygon[i];
-                var vNext = polygon[idxNext];
-                edges.Add(generator(vCurrent, vNext, i, idxNext));
-            }
-            return edges;
         }
 
         /// <summary>
@@ -161,7 +143,7 @@ namespace GeoUtil
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float3 CalcHomogeneousLine(Line l)
         {
-            return math.cross(new float3(l.SPoint,1), new float3(l.EPoint,1));
+            return math.cross(new float3(l.SPoint, 1), new float3(l.EPoint, 1));
         }
 
         /// <summary>
@@ -177,7 +159,7 @@ namespace GeoUtil
 
             int curIdx = GetMinYVertexIndex(poly);
 
-            int nextIdx = GetNextVertexIdx(poly,curIdx);
+            int nextIdx = GetNextVertexIdx(poly, curIdx);
 
             if (poly[curIdx].x > poly[nextIdx].x)
                 return VertexWinding.CW;
@@ -185,26 +167,21 @@ namespace GeoUtil
                 return VertexWinding.CCW;
             else
             {
-                int startIdx = curIdx;
-                curIdx = nextIdx;
-                nextIdx = GetNextVertexIdx(poly, curIdx);
+                //check previous vertex and based on that
+                //prev vertex needs different x than current min y vertex
+                //cause if same it would have a smaller y to not be malforemed
+                //if bigger y and same x (same as next vertex) we would have self intersection
 
-                while (curIdx != startIdx)
-                {
-                    //inverted
-                    if (poly[curIdx].x < poly[nextIdx].x)
-                        return VertexWinding.CW;
-                    else if (poly[curIdx].x > poly[nextIdx].x)
-                        return VertexWinding.CCW;
-                    else
-                    {
-                        curIdx = nextIdx;
-                        nextIdx = GetNextVertexIdx(poly, curIdx);
-                    }
-                }
-                throw new MalforemdPolygonException("Unorientable");
+                int prevIdx = GetPrevVertexIdx(poly, curIdx);
+
+                if (poly[curIdx].x > poly[prevIdx].x)
+                    return VertexWinding.CCW;
+                else if (poly[curIdx].x < poly[prevIdx].x)
+                    return VertexWinding.CW;
+                else
+                    throw new MalforemdPolygonException("Unorientable (probably SelfIntersection)");
             }
-            
+
 
         }
 
@@ -235,7 +212,7 @@ namespace GeoUtil
         /// <param name="curIdx">current vertex index</param>
         /// <returns>the next index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetNextVertexIdx(in IPolygon poly,int curIdx)
+        private static int GetNextVertexIdx(in IPolygon poly, int curIdx)
         {
             return (curIdx + 1) % poly.VertexCount;
         }
@@ -273,11 +250,11 @@ namespace GeoUtil
         /// <param name="p">the polygon to check</param>
         /// <param name="malformedType">what malformation type(out param)</param>
         /// <returns>true if malformed</returns>
-        public static bool IsMalformed(in IPolygon p,out string malformedType)
+        public static bool IsMalformed(in IPolygon p, out string malformedType)
         {
             malformedType = "";
             //TODO are there more malformation types?
-            bool malformed =  CheckPolygonSelfIntersection(p);
+            bool malformed = CheckPolygonSelfIntersection(p);
             if (malformed)
                 malformedType = "SelfIntersection";
             return malformed;
@@ -308,10 +285,10 @@ namespace GeoUtil
                 muteP[i] = p[currentIdx];
                 i++;
 
-            } while (startIdx != GetPrevVertexIdx(p,currentIdx));
-     
+            } while (startIdx != GetPrevVertexIdx(p, currentIdx));
 
-            return muteP.MakeUnmutable(updateNonSerializedData:true);
+
+            return muteP.MakeUnmutable(updateNonSerializedData: true);
 
         }
 
@@ -395,14 +372,14 @@ namespace GeoUtil
         {
             return CheckPointPositionAgainstLine(lP0, lP1, p, LinePosition.on);
         }
-        
+
         /// <summary>
         /// check if p is on line
         /// </summary>
         ///<param name="l">The line segement container</param>
         /// <param name="p">point to check</param>
         /// <returns>true if on line</returns>
-        public static bool IsOnLine(ILineContainer l,float2 p)
+        public static bool IsOnLine(ILineContainer l, float2 p)
         {
             return IsOnLine(l.Line.SPoint, l.Line.EPoint, p);
         }
@@ -427,7 +404,8 @@ namespace GeoUtil
         public static int WindingNumberPointInPolygon(float2 p, in IPolygon polygon)
         {
             int windingNumber = 0;
-            foreach (Edge edge in polygon.Edges)
+            var pol = new EdgeEnumeratedPolygon<Edge>(polygon, Edge.Create);
+            foreach (Edge edge in pol)
             {
                 if (edge.SPoint.y <= p.y && edge.EPoint.y > p.y)
                 {
@@ -444,6 +422,166 @@ namespace GeoUtil
                 }
             }
             return windingNumber;
+        }
+
+        /// <summary>
+        /// calculates the intersection point of ray and line, if they have one
+        /// </summary>
+        /// <param name="v0">line defining point 1</param>
+        /// <param name="v1">line defining point 2</param>
+        /// <param name="rayOrigin">origin of ray</param>
+        /// <param name="rayDirection">direction of ray</param>
+        /// <param name="intersect">out intersection point</param>
+        /// <returns>true if intersection false otherwise</returns>
+        public static bool LineRayIntersect(float2 v0, float2 v1, float2 rayOrigin, float2 rayDirection, out float2 intersect)
+        {
+            float dist;
+            if(LineRayIntersectDist(v0,v1,rayOrigin,rayDirection,out dist))
+            {
+                intersect = rayOrigin + dist * rayDirection;
+                return true;
+            }
+            intersect = float2.zero;
+            return false;
+        }
+
+        /// <summary>
+        /// calculates the disstance from ray origin to line intersection
+        /// </summary>
+        /// <param name="v0">line defining point 1</param>
+        /// <param name="v1">line defining point 2</param>
+        /// <param name="rayOrigin">origin of ray</param>
+        /// <param name="rayDirection">direction of ray</param>
+        /// <param name="intersect">out intersection point</param>
+        /// <returns>true if intersection false otherwise</returns>
+        public static bool LineRayIntersectDist(float2 v0, float2 v1, float2 rayOrigin, float2 rayDirection, out float dist)
+        {
+            dist = float.NaN;
+            float2 originV0 = rayOrigin - v0;
+            float2 v1v0 = v1 - v0;
+            float2 rayNormal = new float2(-rayDirection.y, rayDirection.x);
+
+            float dot = math.dot(v1v0, rayNormal);
+            if (Mathf.Abs(dot) < 0.000001f)
+                return false;
+
+            float t1 = (v1v0.x * originV0.y - v1v0.y * originV0.x) / dot;
+            float t2 = math.dot(originV0, rayNormal) / dot;
+
+            if (t1 >= 0.0f && (t2 >= 0.0f && t2 <= 1f))
+            {
+                dist = t1;
+                return true;
+            }
+            return false;
+        }
+
+        /// <summary>
+        /// calculates the disstance from ray origin to line intersection
+        /// </summary>
+        /// <param name="l"></param>s
+        /// <param name="r"></param>
+        /// <param name="dist">distance from ray origin</param>
+        /// <returns>true if intersection false otherwise</returns>
+        public static bool LineRayIntersectDist(Line l, Ray2D r, out float dist)
+        {
+            return LineRayIntersectDist(l.SPoint, l.EPoint, r.origin, r.direction, out dist);
+        }
+
+        /// <summary>
+        /// intersects a line and a ray
+        /// </summary>
+        /// <param name="l"></param>s
+        /// <param name="r"></param>
+        /// <param name="intersect">the intersection point</param>
+        /// <returns>true if intersection false otherwise</returns>
+        public static bool LineRayIntersect(Line l, Ray2D r, out float2 intersect)
+        {
+            return LineRayIntersect(l.SPoint, l.EPoint, r.origin, r.direction, out intersect);
+        }
+
+        /// <summary>
+        /// calculates all hits of a ray and a polygon edge
+        /// </summary>
+        /// <param name="r">the ray</param>
+        /// <param name="p">the polygon</param>
+        /// <param name="hits">all the hits</param>
+        /// <returns>bool if ray and polygon intersect</returns>
+        public static bool PolygonRayIntersection(Ray2D r, in IPolygon p,out List<float2> hits)
+        {
+            return PolygonRayIntersection(r.origin, r.direction, p, out hits);
+        }
+
+        /// <summary>
+        /// calculates all hits of a ray and a polygon edge
+        /// </summary>
+        /// <param name="r">the ray</param>
+        /// <param name="p">the polygon</param>
+        /// <param name="hits">all the hits</param>
+        /// <returns>bool if ray and polygon intersect</returns>
+        public static bool PolygonRayIntersection(float2 rOrigin,float2 rDirection, in IPolygon p, out List<float2> hits)
+        {
+            hits = new List<float2>();
+
+            var edgePoly = new EdgeEnumeratedPolygon<Edge>(p, Edge.Create);
+
+            foreach (var edge in edgePoly)
+            {
+                float2 intersect;
+                if (LineRayIntersect(edge.SPoint,edge.EPoint, rOrigin,rDirection, out intersect))
+                {
+                    hits.Add(intersect);
+                }
+            }
+
+            if (hits.Count > 0)
+                return true;
+            return false;
+        }
+
+        /// <summary>
+        /// calculates the closest ray polygon intersection point
+        /// </summary>
+        /// <param name="r">the ray</param>
+        /// <param name="p">the polygon</param>
+        /// <param name="closestIntersection">the intersection point</param>
+        /// <returns>true if intersection</returns>
+        public static bool PolygonRayClosestIntersection(Ray2D r, in IPolygon p, out float2 closestIntersection)
+        {
+            return PolygonRayClosestIntersection(r.origin, r.direction, p, out closestIntersection);
+        }
+
+        /// <summary>
+        /// calculates the closest ray polygon intersection point
+        /// </summary>
+        /// <param name="rOrigin">ray origin</param>
+        /// <param name="rDirection">ray direction</param>
+        /// <param name="p">the polygon</param>
+        /// <param name="closestIntersection">the intersection point</param>
+        /// <returns>true if intersection</returns>
+        public static bool PolygonRayClosestIntersection(float2 rOrigin, float2 rDirection, in IPolygon p, out float2 closestIntersection)
+        {
+            bool hasIntersection = false;
+            var edgePoly = new EdgeEnumeratedPolygon<Edge>(p, Edge.Create);
+
+            float minDist = float.NaN;
+            foreach (var edge in edgePoly)
+            {
+                float dist;
+                if (LineRayIntersectDist(edge.SPoint,edge.EPoint, rOrigin,rDirection, out dist))
+                {
+                    hasIntersection = true;
+                    if (dist < minDist)
+                        minDist = dist;
+                }
+            }
+
+            if (hasIntersection)
+                closestIntersection = rOrigin + minDist * rDirection;
+            else
+                closestIntersection = float2.zero;
+
+            return hasIntersection;
         }
 
         /// <summary>
@@ -567,12 +705,14 @@ namespace GeoUtil
 
             bool concaveVertex(int prev, int curr, int next)
             {
+                //TODO implement
                 Debug.Log("TODO");
                 return false;
             }
 
             bool convexVertex(int prev, int curr, int next)
             {
+                //TODO implement
                 Debug.Log("TODO");
                 return false;
             }

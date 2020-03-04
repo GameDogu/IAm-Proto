@@ -24,18 +24,6 @@ namespace GeoUtil
 
         public VertexWinding VertexWinding { get; protected set; }
 
-        protected List<IPolygonEdge> edges;
-        private bool edgesAreValid = false;
-        public List<IPolygonEdge> Edges
-        {
-            get
-            {
-                if (!edgesAreValid)
-                    CalculateEdges();
-                return edges;
-            }
-        }
-
         public bool HasSelfIntersection => GeometryUtility.CheckPolygonSelfIntersection(this);
 
         public bool IsConvex => GeometryUtility.CheckPolygonConvex(this);
@@ -87,13 +75,6 @@ namespace GeoUtil
             p.Bounds = src.Bounds;
             p.Centroid = src.Centroid;
             p.VertexWinding = src.VertexWinding;
-
-            if (nullSrc)
-            {
-                src.vertices = null;
-                src.edges = null;
-            }
-
             return p;
         }
 
@@ -119,19 +100,6 @@ namespace GeoUtil
         public void CalculateWinding()
         {
             VertexWinding = GeometryUtility.GetWinding(this);
-        }
-
-        protected void CalculateEdges()
-        {
-            edges = GeometryUtility.GetEdgesForPolygon(this,Edge.Create);
-            edgesAreValid = true;
-        }
-
-        protected void InvalidateEdges()
-        {
-            if(edges != null)
-                edges.Clear();
-            edgesAreValid = false;
         }
 
         protected void CalculateCentroid()
@@ -179,6 +147,43 @@ namespace GeoUtil
         }
 
     }
+
+    public class EdgeEnumeratedPolygon<T> : IPolygon, IEnumerable<T> where T : IPolygonEdge
+    {
+        IPolygon polygon;
+        Func<float2, float2, int, int, T> edgeGenerator;
+
+        public EdgeEnumeratedPolygon(IPolygon p, Func<float2, float2, int, int, T> edgeGenerator)
+        {
+            polygon = p;
+            this.edgeGenerator = edgeGenerator;
+        }
+
+        public float2 this[int i] => polygon[i];
+
+        public int VertexCount => polygon.VertexCount;
+
+        public Bounds2D Bounds => polygon.Bounds;
+
+        public VertexWinding VertexWinding => polygon.VertexWinding;
+
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            for (int i = 0; i < polygon.VertexCount; i++)
+            {
+                int idxNext = (i + 1) % polygon.VertexCount;
+                var vCurrent = polygon[i];
+                var vNext = polygon[idxNext];
+                yield return edgeGenerator(vCurrent, vNext, i, idxNext);
+            }
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.GetEnumerator();
+        }
+    }  
 }
 
 
