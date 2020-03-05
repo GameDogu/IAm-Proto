@@ -13,7 +13,6 @@ using GeoUtil.Exceptions;
 /// </summary>
 namespace GeoUtil
 {
-
     public static class GeometryUtility
     {
         /// <summary>
@@ -212,7 +211,7 @@ namespace GeoUtil
         /// <param name="curIdx">current vertex index</param>
         /// <returns>the next index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetNextVertexIdx(in IPolygon poly, int curIdx)
+        public static int GetNextVertexIdx(in IPolygon poly, int curIdx)
         {
             return (curIdx + 1) % poly.VertexCount;
         }
@@ -224,7 +223,7 @@ namespace GeoUtil
         /// <param name="curIdx">current vertex index</param>
         /// <returns>the next index</returns>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static int GetPrevVertexIdx(in IPolygon poly, int curIdx)
+        public static int GetPrevVertexIdx(in IPolygon poly, int curIdx)
         {
             return curIdx - 1 < 0 ? poly.VertexCount - 1 : curIdx - 1;
         }
@@ -436,7 +435,7 @@ namespace GeoUtil
         public static bool LineRayIntersect(float2 v0, float2 v1, float2 rayOrigin, float2 rayDirection, out float2 intersect)
         {
             float dist;
-            if(LineRayIntersectDist(v0,v1,rayOrigin,rayDirection,out dist))
+            if (LineRayIntersectDist(v0, v1, rayOrigin, rayDirection, out dist))
             {
                 intersect = rayOrigin + dist * rayDirection;
                 return true;
@@ -507,7 +506,7 @@ namespace GeoUtil
         /// <param name="p">the polygon</param>
         /// <param name="hits">all the hits</param>
         /// <returns>bool if ray and polygon intersect</returns>
-        public static bool PolygonRayIntersection(Ray2D r, in IPolygon p,out List<float2> hits)
+        public static bool PolygonRayIntersection(Ray2D r, in IPolygon p, out List<float2> hits)
         {
             return PolygonRayIntersection(r.origin, r.direction, p, out hits);
         }
@@ -519,7 +518,7 @@ namespace GeoUtil
         /// <param name="p">the polygon</param>
         /// <param name="hits">all the hits</param>
         /// <returns>bool if ray and polygon intersect</returns>
-        public static bool PolygonRayIntersection(float2 rOrigin,float2 rDirection, in IPolygon p, out List<float2> hits)
+        public static bool PolygonRayIntersection(float2 rOrigin, float2 rDirection, in IPolygon p, out List<float2> hits)
         {
             hits = new List<float2>();
 
@@ -528,7 +527,7 @@ namespace GeoUtil
             foreach (var edge in edgePoly)
             {
                 float2 intersect;
-                if (LineRayIntersect(edge.SPoint,edge.EPoint, rOrigin,rDirection, out intersect))
+                if (LineRayIntersect(edge.SPoint, edge.EPoint, rOrigin, rDirection, out intersect))
                 {
                     hits.Add(intersect);
                 }
@@ -568,7 +567,7 @@ namespace GeoUtil
             foreach (var edge in edgePoly)
             {
                 float dist;
-                if (LineRayIntersectDist(edge.SPoint,edge.EPoint, rOrigin,rDirection, out dist))
+                if (LineRayIntersectDist(edge.SPoint, edge.EPoint, rOrigin, rDirection, out dist))
                 {
                     hasIntersection = true;
                     if (dist < minDist)
@@ -640,7 +639,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="p"></param>
         /// <returns></returns>
-        public static List<int> Triangulate(Polygon p)
+        public static List<int> Triangulate(IPolygon p)
         {
             var triIdxs = new List<int>();
             MutablePolygon muteablePoly = new MutablePolygon(p);
@@ -652,6 +651,10 @@ namespace GeoUtil
                 RemoveEar(muteablePoly, ear);
             }
 
+            triIdxs.Add(GetPrevVertexIdx(muteablePoly, 0));
+            triIdxs.Add(0);
+            triIdxs.Add(GetNextVertexIdx(muteablePoly,0));
+
             return triIdxs;
         }
 
@@ -662,9 +665,9 @@ namespace GeoUtil
         /// <param name="ear">the ear indices we want to remove</param>
         private static void RemoveEar(MutablePolygon poly, int[] ear)
         {
-            throw new NotImplementedException();
+            poly.RemoveAt(ear[1]);
         }
-        
+
         /// <summary>
         /// finds an ear of a polygon
         /// </summary>
@@ -679,20 +682,20 @@ namespace GeoUtil
             {
                 indices = l_CalcIndex(i);
 
-                if (convexVertex(indices[0], indices[1], indices[2]))
+                if (IsConcavVertex(poly,indices[0], indices[1], indices[2]))
                 {
                     int prevOneOver = indices[0] - 1 < 0 ? poly.VertexCount - 1 : indices[0] - 1;
                     int nextOneOver = (indices[2] + 1) % poly.VertexCount;
 
-                    if (!concaveVertex(prevOneOver, indices[0], indices[1]) &&
-                       !concaveVertex(indices[0], indices[1], indices[2]) &&
-                       !concaveVertex(indices[1], indices[2], nextOneOver))
+                    if (!IsConcavVertex(poly,prevOneOver, indices[0], indices[1]) &&
+                       !IsConcavVertex(poly,indices[0], indices[1], indices[2]) &&
+                       !IsConcavVertex(poly,indices[1], indices[2], nextOneOver))
                     {
                         earNotFound = false;
                     }
                 }
                 if (earNotFound)
-                    i++;
+                    i = GetNextVertexIdx(poly, i);
 
             }
             return indices;
@@ -702,21 +705,80 @@ namespace GeoUtil
                 int next = GetNextVertexIdx(poly, idx);
                 return new int[] { prev, idx, next };
             }
+        }
 
-            bool concaveVertex(int prev, int curr, int next)
+        /// <summary>
+        /// returns true if a vertex is a concave vertex of a polygon
+        /// </summary>
+        /// <param name="p">the polygon</param>
+        /// <param name="prevVIdx">the previous vertex</param>
+        /// <param name="curVIdx">vertex interessted in</param>
+        /// <param name="nextVIdx">next vertex</param>
+        /// <returns>true if concave vertex</returns>
+        public static bool IsConcavVertex(in IPolygon p, int prevVIdx, int curVIdx, int nextVIdx)
+        {
+            return GetVertexTurnType(p, prevVIdx, curVIdx, nextVIdx) == VertexTurnType.concave;
+        }
+
+
+        /// <summary>
+        /// returns true if a vertex is a convex vertex of a polygon
+        /// </summary>
+        /// <param name="p">the polygon</param>
+        /// <param name="prevVIdx">the previous vertex</param>
+        /// <param name="curVIdx">vertex interessted in</param>
+        /// <param name="nextVIdx">next vertex</param>
+        /// <returns>true if convex vertex</returns>
+        public static bool IsConvexVertex(in IPolygon p, int prevVIdx, int curVIdx, int nextVIdx)
+        {
+            return GetVertexTurnType(p, prevVIdx, curVIdx, nextVIdx) == VertexTurnType.convex;
+        }
+
+        /// <summary>
+        /// returns true if a vertex is a colinear vertex of a polygon
+        /// </summary>
+        /// <param name="p">the polygon</param>
+        /// <param name="prevVIdx">the previous vertex</param>
+        /// <param name="curVIdx">vertex interessted in</param>
+        /// <param name="nextVIdx">next vertex</param>
+        /// <returns>true if colinear vertex</returns>
+        public static bool IsColinearVertex(in IPolygon p, int prevVIdx, int curVIdx, int nextVIdx)
+        {
+            return GetVertexTurnType(p, prevVIdx, curVIdx, nextVIdx) == VertexTurnType.colinear;
+        }
+
+        /// <summary>
+        /// returns the turn type a vertex makes in a polygon, useful to find out if concave or convex vertex
+        /// </summary>
+        /// <param name="poly">the polygon the vertices are from</param>
+        /// <param name="prevVertIdx">previous vertex index</param>
+        /// <param name="curVertIdx">vertex we are interessted in</param>
+        /// <param name="nextVertIdx">next vertex index</param>
+        /// <param name="cwComparison">turn type comparison when cw vertex winding</param>
+        /// <param name="ccwComparison">turn type comparison when cw vertex winding</param>
+        /// <returns></returns>
+        public static VertexTurnType GetVertexTurnType(in IPolygon poly, int prevVertIdx, int curVertIdx, int nextVertIdx)
+        {
+            Debug.Log($"prev:{prevVertIdx}, cur: {curVertIdx}, next: {nextVertIdx}, total: {poly.VertexCount}");
+            LinePosition p = CalculateLinePosition(poly[prevVertIdx], poly[nextVertIdx], poly[curVertIdx]);
+            if (poly.VertexWinding == VertexWinding.CW)
             {
-                //TODO implement
-                Debug.Log("TODO");
-                return false;
+                if (p == LinePosition.right)
+                    return VertexTurnType.concave;
+                else if (p == LinePosition.left)
+                    return VertexTurnType.convex;
+                else
+                    return VertexTurnType.colinear;
             }
-
-            bool convexVertex(int prev, int curr, int next)
-            {
-                //TODO implement
-                Debug.Log("TODO");
-                return false;
+            else
+            {//ccw poligon
+                if (p == LinePosition.left)
+                    return VertexTurnType.concave;
+                else if (p == LinePosition.right)
+                    return VertexTurnType.convex;
+                else
+                    return VertexTurnType.colinear;
             }
-
         }
 
         /// <summary>

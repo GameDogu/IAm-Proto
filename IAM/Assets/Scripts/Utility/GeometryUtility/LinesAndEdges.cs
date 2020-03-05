@@ -76,4 +76,19 @@ namespace GeoUtil
         int EPointIDX { get; }
     }
 
+
+    public struct VertexTripleIndices
+    {
+        public int prevIdx;
+        public int curIdx;
+        public int nextIdx;
+
+        public VertexTripleIndices(int prevIdx, int curIdx, int nextIdx)
+        {
+            this.prevIdx = prevIdx;
+            this.curIdx = curIdx;
+            this.nextIdx = nextIdx;
+        }
+    }
+
 }

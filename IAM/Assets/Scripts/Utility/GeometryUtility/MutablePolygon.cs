@@ -26,16 +26,17 @@ namespace GeoUtil
             this.vertices = vertices.ToList();
         }
 
-        public MutablePolygon(int vertCount)
+        public MutablePolygon(int i)
         {
-            vertices = new List<float2>(vertCount);        
+            vertices = new List<float2>(i);
         }
 
-        public MutablePolygon(IPolygon src):this(src.VertexCount)
+        public MutablePolygon(IPolygon src)
         {
+            vertices = new List<float2>();
             for (int i = 0; i < src.VertexCount; i++)
             {
-                vertices[i] = src[i];
+                vertices.Add(src[i]);
             }
         }
 
@@ -68,6 +69,11 @@ namespace GeoUtil
         public Polygon MakeUnmutable(bool updateNonSerializedData = true)
         {
             return new Polygon(this);
+        }
+
+        public void RemoveAt(int idx)
+        {
+            vertices.RemoveAt(idx);
         }
 
     }
