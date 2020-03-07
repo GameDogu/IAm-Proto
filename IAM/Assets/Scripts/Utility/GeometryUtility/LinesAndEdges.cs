@@ -21,15 +21,15 @@ namespace GeoUtil
 
     public struct Line
     {
-        public float2 SPoint { get; private set; }
-        public float2 EPoint { get; private set; }
+        public float2 v0 { get; private set; }
+        public float2 v1 { get; private set; }
 
         public float3 HomogenousLineCoords => GeometryUtility.CalcHomogeneousLine(this);
 
         public Line(float2 sPoint, float2 ePoint) : this()
         {
-            SPoint = sPoint;
-            EPoint = ePoint;
+            v0 = sPoint;
+            v1 = ePoint;
         }
     }
 
@@ -39,9 +39,9 @@ namespace GeoUtil
         public int SPointIDX { get; private set; }
         public int EPointIDX { get; private set; }
 
-        public float2 SPoint => Line.SPoint;
+        public float2 SPoint => Line.v0;
 
-        public float2 EPoint => Line.EPoint;
+        public float2 EPoint => Line.v1;
 
         public Edge(Line line, int sPointIDX, int ePointIDX) : this()
         {

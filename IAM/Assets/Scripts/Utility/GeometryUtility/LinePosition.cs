@@ -1,4 +1,5 @@
-﻿/// <summary>
+﻿using System.Runtime.CompilerServices;
+/// <summary>
 /// some basic geometry utitltiy
 /// polygon inclusion testing from: http://geomalgorithms.com/a03-_inclusion.html
 /// triangulation https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf
@@ -14,6 +15,7 @@ namespace GeoUtil
 
     public static class LinePositionExtensions
     {
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static int ToInt(this LinePosition p)
         {
             return (int)p;

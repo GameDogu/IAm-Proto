@@ -20,6 +20,10 @@ public class CityGenerator : MonoBehaviour
     [SerializeField] MeshFilter polygonMeshDisplay;
 
     Color c;
+    [SerializeField] int removeEarCount = 0;
+    [SerializeField] int CurrentlyRemovedEars;
+
+    MutablePolygon mP;
 
     private void OnValidate()
     {
@@ -48,24 +52,30 @@ public class CityGenerator : MonoBehaviour
         }
         else if (drawTriangulation)
         {
-            Polygon p = new Polygon(deformedPoints);
+            if (mP == null)
+                mP = new MutablePolygon(new Polygon(deformedPoints));
 
-            var triangles = GeoUtil.GeometryUtility.Triangulate(p);
-
-            Gizmos.color = Color.black;
-            for (int i = 0; i < triangles.Count-2; i+=3)
+            while (CurrentlyRemovedEars < removeEarCount)
             {
-                float3 v0 = new float3(p[i],1f);
-                float3 v1 = new float3(p[i + 1], 1f);
-                float3 v2 = new float3(p[i + 2], 1f);
-
-                Gizmos.DrawLine(v0,v1);
-                Gizmos.DrawLine(v1,v2);
-                Gizmos.DrawLine(v2,v1);
+                var ear = GeoUtil.GeometryUtility.FindEar(mP);
+                GeoUtil.GeometryUtility.RemoveEar(mP, ear);
+                CurrentlyRemovedEars++;
             }
+            DrawPolygon(mP);
         }
     }
 
+    private void DrawPolygon(IPolygon p)
+    {
+        Gizmos.color = Color.black;
+        foreach (Edge e in new EdgeEnumeratedPolygon<Edge>(p, Edge.Create))
+        {
+            var v0 = new float3(e.SPoint, 1f);
+            var v1 = new float3(e.EPoint, 1f);
+
+            Gizmos.DrawLine(v0,v1);
+        }
+    }
 
     public void CalculateBounding()
     {
@@ -97,6 +107,13 @@ public class CityGenerator : MonoBehaviour
         var p = new Polygon(deformedPoints);
         var np = GeoUtil.GeometryUtility.ChangeOrientation(p,p.VertexWinding.Opposite());
         Debug.Log(np.ToString());
+    }
+
+    public void Reset()
+    {
+        CurrentlyRemovedEars = 0;
+        removeEarCount = 0;
+        mP = null;
     }
 }
 
@@ -130,6 +147,10 @@ public class CityGenEditor : Editor
         if (GUILayout.Button("Change Orientation"))
         {
             gen.ChangeOrientation();
+        }
+        if (GUILayout.Button("Reset"))
+        {
+            gen.Reset();
         }
     }
 }

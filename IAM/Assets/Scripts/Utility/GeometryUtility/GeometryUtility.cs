@@ -30,6 +30,16 @@ namespace GeoUtil
             return ((int)(Mathf.Sign(val) * Mathf.Ceil(Mathf.Abs(val)))).ToLinePosition();
         }
 
+        /// calculate point p is left right or on a line formed by lp0 to lp1
+        /// </summary>
+        /// <param name="l">the line we check against</param>
+        /// <param name="p">the point where whe want to know the relative position to the line of</param>
+        /// <returns>the line position</returns>
+        public static LinePosition CalculateLinePosition(Line l, float2 p)
+        {
+            return CalculateLinePosition(l.v0, l.v1, p);
+        }
+
         /// <summary>
         /// calculate if the points form a counter clockwise angle
         /// </summary>
@@ -72,8 +82,8 @@ namespace GeoUtil
         //https://algs4.cs.princeton.edu/91primitives/
         public static bool Intersects(Line l0, Line l1)
         {
-            if (CalculateCCW(l0.SPoint, l0.EPoint, l1.SPoint) * CalculateCCW(l0.SPoint, l0.EPoint, l1.EPoint) > 0) return false;
-            if (CalculateCCW(l1.SPoint, l1.EPoint, l0.SPoint) * CalculateCCW(l1.SPoint, l1.EPoint, l0.EPoint) > 0) return false;
+            if (CalculateCCW(l0.v0, l0.v1, l1.v0) * CalculateCCW(l0.v0, l0.v1, l1.v1) > 0) return false;
+            if (CalculateCCW(l1.v0, l1.v1, l0.v0) * CalculateCCW(l1.v0, l1.v1, l0.v1) > 0) return false;
             return true;
         }
 
@@ -142,7 +152,7 @@ namespace GeoUtil
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static float3 CalcHomogeneousLine(Line l)
         {
-            return math.cross(new float3(l.SPoint, 1), new float3(l.EPoint, 1));
+            return math.cross(new float3(l.v0, 1), new float3(l.v1, 1));
         }
 
         /// <summary>
@@ -323,7 +333,7 @@ namespace GeoUtil
         /// <returns>true if left of line</returns>
         public static bool IsLeftOfLine(Line l, float2 p)
         {
-            return IsLeftOfLine(l.SPoint, l.EPoint, p);
+            return IsLeftOfLine(l.v0, l.v1, p);
         }
 
         /// <summary>
@@ -346,7 +356,7 @@ namespace GeoUtil
         /// <returns>true if right of line</returns>
         public static bool IsRightOfLine(ILineContainer l, float2 p)
         {
-            return IsRightOfLine(l.Line.SPoint, l.Line.EPoint, p);
+            return IsRightOfLine(l.Line.v0, l.Line.v1, p);
         }
 
         /// <summary>
@@ -357,7 +367,7 @@ namespace GeoUtil
         /// <returns>true if right of line</returns>
         public static bool IsRightOfLine(Line l, float2 p)
         {
-            return IsRightOfLine(l.SPoint, l.EPoint, p);
+            return IsRightOfLine(l.v0, l.v1, p);
         }
 
         /// <summary>
@@ -380,7 +390,7 @@ namespace GeoUtil
         /// <returns>true if on line</returns>
         public static bool IsOnLine(ILineContainer l, float2 p)
         {
-            return IsOnLine(l.Line.SPoint, l.Line.EPoint, p);
+            return IsOnLine(l.Line.v0, l.Line.v1, p);
         }
 
         /// <summary>
@@ -391,7 +401,7 @@ namespace GeoUtil
         /// <returns>true if left of line</returns>
         public static bool IsOnLine(Line l, float2 p)
         {
-            return IsOnLine(l.SPoint, l.EPoint, p);
+            return IsOnLine(l.v0, l.v1, p);
         }
 
         /// <summary>
@@ -484,7 +494,7 @@ namespace GeoUtil
         /// <returns>true if intersection false otherwise</returns>
         public static bool LineRayIntersectDist(Line l, Ray2D r, out float dist)
         {
-            return LineRayIntersectDist(l.SPoint, l.EPoint, r.origin, r.direction, out dist);
+            return LineRayIntersectDist(l.v0, l.v1, r.origin, r.direction, out dist);
         }
 
         /// <summary>
@@ -496,7 +506,7 @@ namespace GeoUtil
         /// <returns>true if intersection false otherwise</returns>
         public static bool LineRayIntersect(Line l, Ray2D r, out float2 intersect)
         {
-            return LineRayIntersect(l.SPoint, l.EPoint, r.origin, r.direction, out intersect);
+            return LineRayIntersect(l.v0, l.v1, r.origin, r.direction, out intersect);
         }
 
         /// <summary>
@@ -647,6 +657,8 @@ namespace GeoUtil
             while (muteablePoly.VertexCount > 3)
             {
                 var ear = FindEar(muteablePoly);
+                Debug.Log($"Found ear: prev: {ear[0]}, curent: {ear[1]}, next: {ear[2]}");
+                
                 triIdxs.AddRange(ear);
                 RemoveEar(muteablePoly, ear);
             }
@@ -663,7 +675,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="poly">the polygon we remove the ear from</param>
         /// <param name="ear">the ear indices we want to remove</param>
-        private static void RemoveEar(MutablePolygon poly, int[] ear)
+        public static void RemoveEar(MutablePolygon poly, int[] ear)
         {
             poly.RemoveAt(ear[1]);
         }
@@ -673,7 +685,7 @@ namespace GeoUtil
         /// </summary>
         /// <param name="poly"></param>
         /// <returns>a list of indices of vertixces taht form an ear</returns>
-        private static int[] FindEar(MutablePolygon poly)
+        public static int[] FindEar(MutablePolygon poly)
         {
             int i = 0;
             int[] indices = default;
@@ -682,17 +694,19 @@ namespace GeoUtil
             {
                 indices = l_CalcIndex(i);
 
-                if (IsConcavVertex(poly,indices[0], indices[1], indices[2]))
+                if (IsConvexVertex(poly,indices[0], indices[1], indices[2]))
                 {
                     int prevOneOver = indices[0] - 1 < 0 ? poly.VertexCount - 1 : indices[0] - 1;
                     int nextOneOver = (indices[2] + 1) % poly.VertexCount;
 
-                    if (!IsConcavVertex(poly,prevOneOver, indices[0], indices[1]) &&
-                       !IsConcavVertex(poly,indices[0], indices[1], indices[2]) &&
-                       !IsConcavVertex(poly,indices[1], indices[2], nextOneOver))
-                    {
+                    //if (!IsConcavVertex(poly,prevOneOver, indices[0], indices[1]) &&
+                    //   !IsConcavVertex(poly,indices[0], indices[1], indices[2]) &&
+                    //   !IsConcavVertex(poly,indices[1], indices[2], nextOneOver))
+                    //{
+                    //    earNotFound = false;
+                    //}
+                    if (!PotentialTriangleContainsOtherPolygonVertex(poly, indices))
                         earNotFound = false;
-                    }
                 }
                 if (earNotFound)
                     i = GetNextVertexIdx(poly, i);
@@ -706,6 +720,43 @@ namespace GeoUtil
                 return new int[] { prev, idx, next };
             }
         }
+
+        /// <summary>
+        /// checks if the potenial found ear contains any other points of the polygon
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="earExclude"></param>
+        /// <returns></returns>
+        private static bool PotentialTriangleContainsOtherPolygonVertex(in IPolygon p, int[] earExclude)
+        {
+            var line1 = new Line(p[earExclude[0]], p[earExclude[1]]);
+            var line2 = new Line(p[earExclude[1]], p[earExclude[2]]);
+            var line3 = new Line(p[earExclude[2]], p[earExclude[0]]);
+
+            for (int i = 0; i < p.VertexCount; i++)
+            {
+                if (i != earExclude[0] &&
+                        i != earExclude[1] &&
+                        i != earExclude[2])
+                {//i is not an ear candidate
+                    float2 point = p[i];
+
+                    var side1 = CalculateLinePosition(line1, point);
+                    var side2 = CalculateLinePosition(line2, point);
+                    var side3 = CalculateLinePosition(line3, point);
+
+                    if (side1 == LinePosition.on || side2 == LinePosition.on || side3 == LinePosition.on)
+                        return true;
+                    if (side1 == side2 && side2 == side3)
+                    {
+                        return true;
+                    }
+
+                }
+            }
+            return false;
+        }
+
 
         /// <summary>
         /// returns true if a vertex is a concave vertex of a polygon
@@ -759,7 +810,7 @@ namespace GeoUtil
         /// <returns></returns>
         public static VertexTurnType GetVertexTurnType(in IPolygon poly, int prevVertIdx, int curVertIdx, int nextVertIdx)
         {
-            Debug.Log($"prev:{prevVertIdx}, cur: {curVertIdx}, next: {nextVertIdx}, total: {poly.VertexCount}");
+            //Debug.Log($"prev:{prevVertIdx}, cur: {curVertIdx}, next: {nextVertIdx}, total: {poly.VertexCount}");
             LinePosition p = CalculateLinePosition(poly[prevVertIdx], poly[nextVertIdx], poly[curVertIdx]);
             if (poly.VertexWinding == VertexWinding.CW)
             {
