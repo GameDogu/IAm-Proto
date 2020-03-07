@@ -170,6 +170,8 @@ namespace GeoUtil
 
             int nextIdx = GetNextVertexIdx(poly, curIdx);
 
+            //TODO there are still errors
+
             if (poly[curIdx].x > poly[nextIdx].x)
                 return VertexWinding.CW;
             else if (poly[curIdx].x < poly[nextIdx].x)
@@ -653,19 +655,24 @@ namespace GeoUtil
         {
             var triIdxs = new List<int>();
             MutablePolygon muteablePoly = new MutablePolygon(p);
-
+            PolygonVertexFinder finder = new PolygonVertexFinder(p);
             while (muteablePoly.VertexCount > 3)
             {
                 var ear = FindEar(muteablePoly);
-                Debug.Log($"Found ear: prev: {ear[0]}, curent: {ear[1]}, next: {ear[2]}");
-                
-                triIdxs.AddRange(ear);
+
+                int[] actualEar = new int[3];
+
+                actualEar[0] = finder[muteablePoly[ear[0]]];
+                actualEar[1] = finder[muteablePoly[ear[1]]];
+                actualEar[2] = finder[muteablePoly[ear[2]]];
+
+                triIdxs.AddRange(actualEar);
                 RemoveEar(muteablePoly, ear);
             }
 
-            triIdxs.Add(GetPrevVertexIdx(muteablePoly, 0));
-            triIdxs.Add(0);
-            triIdxs.Add(GetNextVertexIdx(muteablePoly,0));
+            triIdxs.Add(finder[muteablePoly[GetPrevVertexIdx(muteablePoly, 0)]]);
+            triIdxs.Add(finder[muteablePoly[0]]);
+            triIdxs.Add(finder[muteablePoly[GetNextVertexIdx(muteablePoly, 0)]]);
 
             return triIdxs;
         }

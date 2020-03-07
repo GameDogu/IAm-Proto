@@ -46,3 +46,5 @@ IAM/Packages/
 IAM/ProjectSettings/
 IAM/Assembly-CSharp.csproj
 IAM/Assembly-CSharp-Editor.csproj
+IAM/Assets/Resources/Mesh/Room.obj.meta
+IAM/Assets/Resources/Mesh/Stairs.obj.meta

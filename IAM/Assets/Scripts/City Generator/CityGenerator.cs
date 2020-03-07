@@ -20,10 +20,8 @@ public class CityGenerator : MonoBehaviour
     [SerializeField] MeshFilter polygonMeshDisplay;
 
     Color c;
-    [SerializeField] int removeEarCount = 0;
-    [SerializeField] int CurrentlyRemovedEars;
-
-    MutablePolygon mP;
+    List<int> triangles;
+    Polygon p;
 
     private void OnValidate()
     {
@@ -52,16 +50,24 @@ public class CityGenerator : MonoBehaviour
         }
         else if (drawTriangulation)
         {
-            if (mP == null)
-                mP = new MutablePolygon(new Polygon(deformedPoints));
-
-            while (CurrentlyRemovedEars < removeEarCount)
+            if (triangles == null)
             {
-                var ear = GeoUtil.GeometryUtility.FindEar(mP);
-                GeoUtil.GeometryUtility.RemoveEar(mP, ear);
-                CurrentlyRemovedEars++;
+                p = new Polygon(deformedPoints);
+                triangles = GeoUtil.GeometryUtility.Triangulate(p);
             }
-            DrawPolygon(mP);
+            
+            Gizmos.color = Color.black;
+            for (int i = 0; i < triangles.Count-2; i+=3)
+            {
+                float3 v0 = new float3(p[triangles[i]], 0f);
+                float3 v1 = new float3(p[triangles[i+1]], 0f);
+                float3 v2 = new float3(p[triangles[i+2]], 0f);
+
+                Gizmos.DrawLine(v0, v1);
+                Gizmos.DrawLine(v1, v2);
+                Gizmos.DrawLine(v2, v0);
+            }
+
         }
     }
 
@@ -111,9 +117,25 @@ public class CityGenerator : MonoBehaviour
 
     public void Reset()
     {
-        CurrentlyRemovedEars = 0;
-        removeEarCount = 0;
-        mP = null;
+        triangles = null;
+        p = null;
+    }
+
+    public void Triangulate()
+    {
+        var p = new Polygon(deformedPoints);
+        var tri = GeoUtil.GeometryUtility.Triangulate(p);
+        Mesh m = new Mesh();
+        var vert = new Vector3[deformedPoints.Length];
+        for (int i = 0; i < deformedPoints.Length; i++)
+        {
+            vert[i] = deformedPoints[i];
+        }
+        m.vertices = vert;
+        m.triangles = tri.ToArray();
+        m.RecalculateNormals();
+        m.RecalculateTangents();
+        polygonMeshDisplay.sharedMesh = m;
     }
 }
 
@@ -148,9 +170,16 @@ public class CityGenEditor : Editor
         {
             gen.ChangeOrientation();
         }
+
         if (GUILayout.Button("Reset"))
         {
             gen.Reset();
         }
+
+        if (GUILayout.Button("Triangulate"))
+        {
+            gen.Triangulate();
+        }
+
     }
 }

@@ -19,11 +19,18 @@ namespace GeoUtil
 
         public int VertexCount => vertices.Count;
 
-        public VertexWinding VertexWinding => GeometryUtility.GetWinding(this);
+        public VertexWinding VertexWinding { get; protected set; }
 
         public MutablePolygon(float2[] vertices) 
         {
             this.vertices = vertices.ToList();
+            VertexWinding = GeometryUtility.GetWinding(this);
+        }
+
+        public MutablePolygon(List<float2> vertices)
+        {
+            this.vertices = vertices;
+            VertexWinding = GeometryUtility.GetWinding(this);
         }
 
         public MutablePolygon(int i)
@@ -38,6 +45,7 @@ namespace GeoUtil
             {
                 vertices.Add(src[i]);
             }
+            VertexWinding = GeometryUtility.GetWinding(this);
         }
 
         public float2 this[int i]
@@ -74,6 +82,11 @@ namespace GeoUtil
         public void RemoveAt(int idx)
         {
             vertices.RemoveAt(idx);
+        }
+
+        public void RecalculateVertexWinding()
+        {
+            VertexWinding = GeometryUtility.GetWinding(this);
         }
 
     }
