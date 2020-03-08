@@ -5,6 +5,7 @@ using Unity.Mathematics;
 using Priority_Queue;
 using System.Runtime.CompilerServices;
 using GeoUtil.Exceptions;
+using GeoUtil.HelperCollections;
 
 /// <summary>
 /// some basic geometry utitltiy
@@ -157,46 +158,23 @@ namespace GeoUtil
 
         /// <summary>
         /// calculate polygon orientation
-        /// may throw malformed polygon exception
+        ///  works with self intersect (returns most common winding)
         /// </summary>
         /// <param name="poly">the polygon we want the orientation of</param>
         /// <returns>the vertex orientation</returns>
         public static VertexWinding GetWinding(in IPolygon poly)
         {
-            if (IsMalformed(poly, out string malformType))
-                throw new MalforemdPolygonException(malformType);
-
-            int curIdx = GetMinYVertexIndex(poly);
-
-            int nextIdx = GetNextVertexIdx(poly, curIdx);
-
-            //TODO there are still errors
-
-            if (poly[curIdx].x > poly[nextIdx].x)
-                return VertexWinding.CW;
-            else if (poly[curIdx].x < poly[nextIdx].x)
-                return VertexWinding.CCW;
-            else
+            EdgeEnumeratedPolygon<Edge> p = new EdgeEnumeratedPolygon<Edge>(poly, Edge.Create);
+            float sum = 0;
+            foreach (var e in p)
             {
-                //check previous vertex and based on that
-                //prev vertex needs different x than current min y vertex
-                //cause if same it would have a smaller y to not be malforemed
-                //if bigger y and same x (same as next vertex) we would have self intersection
-
-                int prevIdx = GetPrevVertexIdx(poly, curIdx);
-
-                if (poly[curIdx].x > poly[prevIdx].x)
-                    return VertexWinding.CCW;
-                else if (poly[curIdx].x < poly[prevIdx].x)
-                    return VertexWinding.CW;
-                else
-                    throw new MalforemdPolygonException("Unorientable (probably SelfIntersection)");
+                sum += (e.EPoint.x - e.SPoint.x) * (e.EPoint.y + e.SPoint.y);
             }
-
-
+            if (sum >= 0)
+                return VertexWinding.CW;
+            return VertexWinding.CCW;
         }
-
-        /// <summary>
+                /// <summary>
         /// gets the index of the first(if multiple had the same min y value) vertex with the minimum y value
         /// </summary>
         /// <param name="poly">the polygon</param>
@@ -239,7 +217,6 @@ namespace GeoUtil
         {
             return curIdx - 1 < 0 ? poly.VertexCount - 1 : curIdx - 1;
         }
-
 
         /// <summary>
         /// checks if a point is in a certain relational position to a line

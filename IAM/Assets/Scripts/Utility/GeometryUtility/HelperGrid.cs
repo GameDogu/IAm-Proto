@@ -1,7 +1,9 @@
 ﻿using Unity.Mathematics;
+using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System;
 
-namespace GeoUtil.HelperGrid
+namespace GeoUtil.HelperCollections
 {
     public abstract class HelperGrid<C, I, R> where C : Cell<I, R>
     {
@@ -33,5 +35,20 @@ namespace GeoUtil.HelperGrid
             return (int2)math.floor(v / resolution);
         }
     }
-   
+
+    public interface IPositionable
+    {
+        float2 Position { get; }
+    }
+
+    public abstract class QuadTree
+    {}
+
+    public abstract class QTNode<T>
+    {
+
+    }
+
+
+
 }

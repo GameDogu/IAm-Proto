@@ -1,5 +1,5 @@
 ﻿using Unity.Mathematics;
-using GeoUtil.HelperGrid;
+using GeoUtil.HelperCollections;
 /// <summary>
 /// some basic geometry utitltiy
 /// polygon inclusion testing from: http://geomalgorithms.com/a03-_inclusion.html

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
 
-namespace GeoUtil.HelperGrid
+namespace GeoUtil.HelperCollections
 {
     public class PolygonVertexIDXCell : Cell<float2, int>
     {

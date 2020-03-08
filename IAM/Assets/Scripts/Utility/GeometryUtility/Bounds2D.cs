@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using Unity.Mathematics;
+using System;
 
 /// <summary>
 /// some basic geometry utitltiy
@@ -33,10 +34,21 @@ namespace GeoUtil
             Extents = Size * 0.5f;
         }
 
+        public Bounds2D(float2 min, float2 max)
+            :this((min.x,max.x),(min.y,max.y))
+        {}
+
         public bool Contains(float2 p)
         {
             return (p >= Min).ElemtAnd() && (p <= Max).ElemtAnd();
         }
 
+        public bool Overlap(Bounds2D bounds)
+        {
+            return Contains(bounds.Min) || Contains(bounds.Max) || Contains(bounds.Center)
+                || Contains(new float2(bounds.Min.x, bounds.Max.y)) || Contains(new float2(bounds.Max.x, bounds.Min.y)) ||
+                bounds.Contains(Min) || bounds.Contains(Max) || bounds.Contains(Center)
+                || bounds.Contains(new float2(Min.x, Max.y)) || bounds.Contains(new float2(Max.x, Min.y));
+        }
     }    
 }
