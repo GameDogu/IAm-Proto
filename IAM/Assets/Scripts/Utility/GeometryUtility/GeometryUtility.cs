@@ -255,11 +255,12 @@ namespace GeoUtil
         /// </summary>
         /// <param name="p">The polygon p</param>
         /// <param name="orientation">the winding wanted</param>
-        /// <returns>a NEW polygon with the new winding</returns>
-        public static Polygon ChangeOrientation(in IPolygon p, VertexWinding orientation = VertexWinding.CW)
+        /// <returns>a NEW polygon (if the old one had a different winding) with the new winding</returns>
+        public static T ChangeOrientation<T>(in T p,Func<MutablePolygon,T> polygonConverter, VertexWinding orientation = VertexWinding.CW)
+            where T : IPolygon
         {
             if (orientation == p.VertexWinding)
-                return new Polygon(p);
+                return p;
 
             int startIdx = GetMinYVertexIndex(p);
             var muteP = new MutablePolygon(p.VertexCount);
@@ -278,7 +279,7 @@ namespace GeoUtil
             } while (startIdx != GetPrevVertexIdx(p, currentIdx));
 
 
-            return muteP.MakeUnmutable(updateNonSerializedData: true);
+            return polygonConverter(muteP);
 
         }
 
@@ -715,9 +716,11 @@ namespace GeoUtil
         /// <returns></returns>
         private static bool PotentialTriangleContainsOtherPolygonVertex(in IPolygon p, int[] earExclude)
         {
-            var line1 = new Line(p[earExclude[0]], p[earExclude[1]]);
-            var line2 = new Line(p[earExclude[1]], p[earExclude[2]]);
-            var line3 = new Line(p[earExclude[2]], p[earExclude[0]]);
+            var triangle = new Triangle(
+                p[earExclude[0]],
+                p[earExclude[1]],
+                p[earExclude[2]]
+                );
 
             for (int i = 0; i < p.VertexCount; i++)
             {
@@ -727,22 +730,13 @@ namespace GeoUtil
                 {//i is not an ear candidate
                     float2 point = p[i];
 
-                    var side1 = CalculateLinePosition(line1, point);
-                    var side2 = CalculateLinePosition(line2, point);
-                    var side3 = CalculateLinePosition(line3, point);
-
-                    if (side1 == LinePosition.on || side2 == LinePosition.on || side3 == LinePosition.on)
+                    if (PolygonContains(point, triangle))
                         return true;
-                    if (side1 == side2 && side2 == side3)
-                    {
-                        return true;
-                    }
 
                 }
             }
             return false;
         }
-
 
         /// <summary>
         /// returns true if a vertex is a concave vertex of a polygon
@@ -756,7 +750,6 @@ namespace GeoUtil
         {
             return GetVertexTurnType(p, prevVIdx, curVIdx, nextVIdx) == VertexTurnType.concave;
         }
-
 
         /// <summary>
         /// returns true if a vertex is a convex vertex of a polygon
@@ -1005,6 +998,52 @@ namespace GeoUtil
 
             return 1;
         }
+        #endregion
+
+        #region PointCloud
+
+        /// <summary>
+        /// http://vcg.isti.cnr.it/publications/papers/dewall.pdf
+        /// </summary>
+        /// <param name="points">point cloud</param>
+        /// <returns>triangulation of point cloud</returns>
+        public static List<int> DelauneyTriangulation(float2[] points)
+        {
+            List<int> triangles = new List<int>();
+
+            //TODO
+            
+
+            return triangles;
+        }
+
+        /// <summary>
+        /// https://en.wikipedia.org/wiki/Delaunay_triangulation
+        /// sssection Algorithms start
+        /// </summary>
+        /// <param name="t">the triangle</param>
+        /// <param name="d">point we want to test if in circumcircle</param>
+        /// <returns></returns>
+        public static bool TriangleCircumferanceTest(Triangle t, float2 d)
+        {
+            if (t.VertexWinding != VertexWinding.CCW)
+                t = ChangeOrientation(t, (mP) => new Triangle(mP[0], mP[1], mP[2]),VertexWinding.CCW);
+
+            float3 c1_1 = new float3(t.A.x, t.B.x, t.C.x);
+            float3 c2_1 = new float3(t.A.y, t.B.y, t.C.y);
+
+            float3 dX = d.xxx;
+            float3 dY = d.yyy;
+
+            float3 x = c1_1 - dX;
+            float3 y = c2_1 - dY;
+
+            float3x3 mat = new float3x3(x, y, x * x + y * y);
+
+            return math.determinant(mat) > 0f;
+        }
+
+
         #endregion
     }
 }

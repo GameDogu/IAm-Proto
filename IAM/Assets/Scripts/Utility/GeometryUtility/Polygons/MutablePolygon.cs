@@ -89,6 +89,5 @@ namespace GeoUtil.Polygons
         {
             VertexWinding = GeometryUtility.GetWinding(this);
         }
-
     }
 }

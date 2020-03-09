@@ -114,7 +114,7 @@ public class CityGenerator : MonoBehaviour
     public void ChangeOrientation()
     {
         var p = new Polygon(deformedPoints);
-        var np = GeoUtil.GeometryUtility.ChangeOrientation(p,p.VertexWinding.Opposite());
+        var np = GeoUtil.GeometryUtility.ChangeOrientation(p, (muteP) => muteP.MakeUnmutable(updateNonSerializedData:true), p.VertexWinding.Opposite());
         Debug.Log(np.ToString());
     }
 
