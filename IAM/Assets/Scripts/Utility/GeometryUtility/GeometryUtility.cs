@@ -2,10 +2,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unity.Mathematics;
-using Priority_Queue;
 using System.Runtime.CompilerServices;
 using GeoUtil.Exceptions;
-using GeoUtil.HelperCollections;
+using GeoUtil.HelperCollections.Enumerables;
+using GeoUtil.Polygons;
+using GeoUtil.Linear;
+using GeoUtil.Vertex;
 
 /// <summary>
 /// some basic geometry utitltiy

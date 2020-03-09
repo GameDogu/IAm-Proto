@@ -1,15 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Unity.Mathematics;
-using System;
+using GeoUtil.Vertex;
 
 /// <summary>
 /// some basic geometry utitltiy
 /// polygon inclusion testing from: http://geomalgorithms.com/a03-_inclusion.html
 /// triangulation https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf
 /// </summary>
-namespace GeoUtil
+namespace GeoUtil.Polygons
 {
     public class MutablePolygon : IPolygon
     {

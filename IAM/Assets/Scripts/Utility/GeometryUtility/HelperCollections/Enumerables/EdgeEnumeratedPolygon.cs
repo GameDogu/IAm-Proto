@@ -1,13 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using Unity.Mathematics;
-
+using GeoUtil.Polygons;
+using GeoUtil.Linear;
 /// <summary>
 /// some basic geometry utitltiy
 /// polygon inclusion testing from: http://geomalgorithms.com/a03-_inclusion.html
 /// triangulation https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf
 /// </summary>
-namespace GeoUtil.HelperCollections
+namespace GeoUtil.HelperCollections.Enumerables
 {
     public class EdgeEnumeratedPolygon<E>:EnumerablePolygon<E>
          where E : IPolygonEdge

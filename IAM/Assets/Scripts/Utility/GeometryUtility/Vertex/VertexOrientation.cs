@@ -6,7 +6,7 @@ using Unity.Mathematics;
 /// polygon inclusion testing from: http://geomalgorithms.com/a03-_inclusion.html
 /// triangulation https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf
 /// </summary>
-namespace GeoUtil
+namespace GeoUtil.Vertex
 {
     public enum VertexWinding
     {

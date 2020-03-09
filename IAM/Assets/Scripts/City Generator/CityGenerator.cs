@@ -5,7 +5,10 @@ using UnityEngine;
 using UnityEditor;
 using GeoUtil;
 using Unity.Mathematics;
-using GeoUtil.HelperCollections;
+using GeoUtil.HelperCollections.Enumerables;
+using GeoUtil.Polygons;
+using GeoUtil.Linear;
+using GeoUtil.Vertex;
 
 public class CityGenerator : MonoBehaviour
 {

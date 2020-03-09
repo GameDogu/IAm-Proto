@@ -2,8 +2,9 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unity.Mathematics;
+using GeoUtil.Polygons;
 
-namespace GeoUtil.HelperCollections
+namespace GeoUtil.HelperCollections.Grids
 {
     public class PolygonVertexIDXCell : Cell<float2, int>
     {
@@ -51,13 +52,13 @@ namespace GeoUtil.HelperCollections
         }
     }
 
-    public class PolygonVertexIDXHelperGrid : Float2HelperGrid<PolygonVertexIDXCell, int>
+    public class PolygonVertexIDXHelperGrid : RebasingHelperGrid<PolygonVertexIDXCell, int>
     {
         IPolygon poly;
 
         Dictionary<int2, PolygonVertexIDXCell> cells;
 
-        public PolygonVertexIDXHelperGrid(IPolygon p, float resolution) : base(resolution)
+        public PolygonVertexIDXHelperGrid(IPolygon p, float resolution) : base(p.Bounds.Min,resolution)
         {
             poly = p;
             cells = new Dictionary<int2, PolygonVertexIDXCell>();

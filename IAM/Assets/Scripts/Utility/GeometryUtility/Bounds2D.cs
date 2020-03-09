@@ -50,5 +50,10 @@ namespace GeoUtil
                 bounds.Contains(Min) || bounds.Contains(Max) || bounds.Contains(Center)
                 || bounds.Contains(new float2(Min.x, Max.y)) || bounds.Contains(new float2(Max.x, Min.y));
         }
+
+        public Bounds2D Scale(float scale)
+        {
+            return new Bounds2D(Min * scale, Max * scale);
+        }
     }    
 }

@@ -1,11 +1,11 @@
 ﻿using Unity.Mathematics;
-using GeoUtil.HelperCollections;
+using GeoUtil.HelperCollections.Grids;
 /// <summary>
 /// some basic geometry utitltiy
 /// polygon inclusion testing from: http://geomalgorithms.com/a03-_inclusion.html
 /// triangulation https://www.geometrictools.com/Documentation/TriangulationByEarClipping.pdf
 /// </summary>
-namespace GeoUtil
+namespace GeoUtil.Polygons
 {
     public struct PolygonVertexFinder
     {
